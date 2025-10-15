@@ -2,6 +2,7 @@
 
 **Base URL**: `/api/v1/companies`  
 **버전**: v1.0
+**최종 업데이트**: 2025-10-15
 
 ---
 
@@ -91,4 +92,4 @@ Cookie: accessToken=eyJ...
 
 ---
 
-**문서 작성자**: Backend Team
+**문서 작성자**: Ted

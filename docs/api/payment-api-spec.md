@@ -2,7 +2,7 @@
 
 **Base URL**: `/api/v1/payments`  
 **버전**: v1.0  
-**최종 업데이트**: 2025-01-15
+**최종 업데이트**: 2025-10-15
 
 ---
 
@@ -87,7 +87,7 @@ Content-Type: application/json
   "cardNumber": "1234-****-****-5678",
   "installment": 0,
   "approvalNumber": "12345678",
-  "approvedAt": "2025-01-15T10:35:00",
+  "approvedAt": "2025-10-15T10:35:00",
   "status": "SUCCESS"
 }
 ```
@@ -174,7 +174,7 @@ Cookie: accessToken=eyJ...
         "amount": 90000,
         "paymentMethod": "CARD",
         "status": "SUCCESS",
-        "paidAt": "2025-01-15T10:35:00",
+        "paidAt": "2025-10-15T10:35:00",
         "canRefund": true,
         "refundDeadline": "2025-01-18T23:59:59"
       }
@@ -210,7 +210,7 @@ Cookie: accessToken=eyJ...
     "averageOrderValue": 100000,
     "dailySales": [
       {
-        "date": "2025-01-15",
+        "date": "2025-10-15",
         "revenue": 1200000,
         "orders": 12
       }
@@ -290,4 +290,4 @@ type PaymentStatus = 'PENDING' | 'SUCCESS' | 'FAILED' | 'CANCELLED' | 'REFUNDED'
 
 ---
 
-**문서 작성자**: Backend Team
+**문서 작성자**: Ted

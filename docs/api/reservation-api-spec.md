@@ -2,7 +2,7 @@
 
 **Base URL**: `/api/v1/reservation`  
 **버전**: v1.0  
-**최종 업데이트**: 2025-01-15
+**최종 업데이트**: 2025-10-15
 
 ---
 
@@ -68,8 +68,8 @@ Cookie: accessToken=eyJ...
       }
     ],
     "specialRequests": "채식 도시락 부탁드립니다",
-    "createdAt": "2025-01-15T10:30:00",
-    "confirmedAt": "2025-01-15T10:35:00"
+    "createdAt": "2025-10-15T10:30:00",
+    "confirmedAt": "2025-10-15T10:35:00"
   },
   "message": null,
   "errorCode": null
@@ -112,7 +112,7 @@ Cookie: accessToken=eyJ...
         "participants": 2,
         "totalPrice": 90000,
         "isReviewed": false,
-        "createdAt": "2025-01-15T10:30:00"
+        "createdAt": "2025-10-15T10:30:00"
       }
     ],
     "page": 0,
@@ -281,4 +281,4 @@ type PaymentStatus = 'PENDING' | 'SUCCESS' | 'FAILED' | 'REFUNDED';
 
 ---
 
-**문서 작성자**: Backend Team
+**문서 작성자**: Ted

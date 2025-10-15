@@ -376,7 +376,7 @@ return PageResponse.of(page, content);
 
 # ChangeSet structure
 - changeSet:
-    id: 2025-01-15-add-column-example
+    id: 2025-10-15-add-column-example
     author: agent-name
     changes:
       - addColumn:
@@ -840,7 +840,7 @@ Closes #5678
 - Added filtering endpoint to ProductController
 - Implemented ProductFilterService
 - Added database indexes for filter columns
-- Created Liquibase changeset 2025-01-15-add-product-indexes
+- Created Liquibase changeset 2025-10-15-add-product-indexes
 
 ## API Changes
 ### New Endpoint
@@ -1072,7 +1072,7 @@ This constitution should be updated when:
 - Team conventions evolve
 - Common issues are identified and resolved
 
-**Last Updated**: 2025-01-15
+**Last Updated**: 2025-10-15
 **Version**: 1.0.0
 **Maintained By**: Development Team
 

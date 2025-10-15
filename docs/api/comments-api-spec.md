@@ -2,7 +2,7 @@
 
 **Base URL**: `/api/v1/comments`  
 **버전**: v1.0  
-**최종 업데이트**: 2025-01-15
+**최종 업데이트**: 2025-10-15
 
 ---
 
@@ -68,14 +68,14 @@ Cookie: accessToken=eyJ... (선택)
             },
             "likeCount": 3,
             "isLiked": false,
-            "createdAt": "2025-01-15T11:30:00",
+            "createdAt": "2025-10-15T11:30:00",
             "isEdited": false,
             "isDeleted": false
           }
         ],
         "replyCount": 1,
-        "createdAt": "2025-01-15T10:20:00",
-        "updatedAt": "2025-01-15T10:25:00",
+        "createdAt": "2025-10-15T10:20:00",
+        "updatedAt": "2025-10-15T10:25:00",
         "isEdited": true,
         "isDeleted": false
       }
@@ -128,7 +128,7 @@ Cookie: accessToken=eyJ...
   "data": {
     "commentId": 1,
     "content": "정말 유익한 정보네요! 감사합니다.",
-    "createdAt": "2025-01-15T10:20:00"
+    "createdAt": "2025-10-15T10:20:00"
   },
   "message": "댓글이 등록되었습니다.",
   "errorCode": null
@@ -161,7 +161,7 @@ Cookie: accessToken=eyJ...
   "data": {
     "commentId": 1,
     "content": "수정된 댓글 내용입니다.",
-    "updatedAt": "2025-01-15T10:25:00"
+    "updatedAt": "2025-10-15T10:25:00"
   },
   "message": "댓글이 수정되었습니다.",
   "errorCode": null
@@ -295,4 +295,4 @@ type ReportReason = 'ABUSE' | 'SPAM' | 'INAPPROPRIATE' | 'COPYRIGHT' | 'OTHER';
 
 ---
 
-**문서 작성자**: Backend Team
+**문서 작성자**: Ted

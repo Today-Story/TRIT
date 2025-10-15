@@ -244,7 +244,7 @@ hashtags.forEach(tag => {
 
 ---
 
-**문서 작성자**: Backend Team  
+**문서 작성자**: Ted  
 **문의**: backend-team@trit.today
 
 **개발 로드맵**:

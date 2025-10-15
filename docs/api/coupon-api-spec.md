@@ -2,7 +2,7 @@
 
 **Base URL**: `/api/v1/coupons`  
 **버전**: v1.0  
-**최종 업데이트**: 2025-01-15
+**최종 업데이트**: 2025-10-15
 
 ---
 
@@ -82,7 +82,7 @@ Cookie: accessToken=eyJ...
           "discountValue": 10
         },
         "status": "AVAILABLE",
-        "issuedAt": "2025-01-15T10:00:00",
+        "issuedAt": "2025-10-15T10:00:00",
         "usedAt": null,
         "expiresAt": "2025-12-31T23:59:59"
       }
@@ -200,4 +200,4 @@ interface CouponResponse {
 
 ---
 
-**문서 작성자**: Backend Team
+**문서 작성자**: Ted

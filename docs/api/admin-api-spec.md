@@ -2,7 +2,7 @@
 
 **Base URL**: `/api/v1/admin`  
 **버전**: v1.0  
-**최종 업데이트**: 2025-01-15
+**최종 업데이트**: 2025-10-15
 
 ---
 
@@ -44,7 +44,7 @@ Cookie: accessToken=eyJ...
         "role": "USER",
         "status": "ACTIVE",
         "createdAt": "2024-12-01T10:00:00",
-        "lastLoginAt": "2025-01-15T09:30:00"
+        "lastLoginAt": "2025-10-15T09:30:00"
       }
     ],
     "page": 0,
@@ -240,4 +240,4 @@ Cookie: accessToken=eyJ...
 
 ---
 
-**문서 작성자**: Backend Team
+**문서 작성자**: Ted

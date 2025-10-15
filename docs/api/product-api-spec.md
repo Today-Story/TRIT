@@ -2,7 +2,7 @@
 
 **Base URL**: `/api/v1/products`  
 **버전**: v1.0  
-**최종 업데이트**: 2025-01-15
+**최종 업데이트**: 2025-10-15
 
 ---
 
@@ -423,5 +423,5 @@ interface ProductSchedule {
 
 ---
 
-**문서 작성자**: Backend Team  
+**문서 작성자**: Ted  
 **문의**: backend-team@trit.today

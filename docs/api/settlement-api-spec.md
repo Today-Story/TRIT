@@ -50,7 +50,7 @@ Cookie: accessToken=eyJ...
             "orderId": "ORDER_20250115_001",
             "amount": 100000,
             "commission": 10000,
-            "date": "2025-01-15"
+            "date": "2025-10-15"
           }
         ]
       }
@@ -109,4 +109,4 @@ Cookie: accessToken=eyJ...
 
 ---
 
-**문서 작성자**: Backend Team
+**문서 작성자**: Ted

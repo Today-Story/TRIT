@@ -3,7 +3,7 @@
 > TRIT 프로젝트의 전체 시스템 아키텍처, 기술 결정 사항, 설계 원칙을 설명합니다.
 
 **문서 버전**: 1.0.0  
-**최종 업데이트**: 2025-01-15
+**최종 업데이트**: 2025-10-15
 
 ---
 
@@ -12,7 +12,7 @@
 - [시스템 개요](#-시스템-개요)
 - [아키텍처 다이어그램](#-아키텍처-다이어그램)
 - [Frontend 아키텍처](#-frontend-아키텍처)
-- [Backend 아키텍처](#-backend-아키텍처)
+- [Backend 아키텍처](#%EF%B8%8F-backend-아키텍처)
 - [데이터베이스 설계](#-데이터베이스-설계)
 - [인프라 아키텍처](#-인프라-아키텍처)
 - [보안 아키텍처](#-보안-아키텍처)
@@ -37,21 +37,25 @@ TRIT은 여행자, 크리에이터, 여행 업체를 연결하는 통합 플랫�
 ### 핵심 설계 원칙
 
 #### 1. 관심사의 분리 (Separation of Concerns)
+
 - Frontend와 Backend의 명확한 역할 분리
 - 도메인별 모듈화 (DDD 일부 적용)
 - 레이어드 아키텍처 (Controller → Service → Repository)
 
 #### 2. 확장 가능성 (Scalability)
+
 - 마이크로서비스 전환 가능한 모듈 구조
 - 수평 확장 가능한 컨테이너 기반 배포
 - 캐싱 전략을 통한 데이터베이스 부하 분산
 
 #### 3. 유지보수성 (Maintainability)
+
 - 명확한 코딩 컨벤션 및 문서화
 - 자동화된 테스트 및 CI/CD 파이프라인
 - 타입 안정성 (TypeScript, Java)
 
 #### 4. 보안 우선 (Security First)
+
 - JWT 기반 인증/인가
 - HTTPS 통신 강제
 - 민감 정보 암호화 저장
@@ -63,151 +67,152 @@ TRIT은 여행자, 크리에이터, 여행 업체를 연결하는 통합 플랫�
 
 ### 전체 시스템 아키텍처
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                         Client Layer                          │
-├──────────────────────────────────────────────────────────────┤
-│  Web Browser (Desktop/Mobile)                                 │
-│  - Next.js SSR/CSR Pages                                      │
-│  - React Components                                           │
-└────────────────┬─────────────────────────────────────────────┘
-                 │ HTTPS
-┌────────────────▼─────────────────────────────────────────────┐
-│                      Frontend Layer                           │
-├──────────────────────────────────────────────────────────────┤
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │  Platform    │  │    Admin     │  │  Backoffice  │       │
-│  │  (Next.js)   │  │  (Next.js)   │  │  (Next.js)   │       │
-│  └──────────────┘  └──────────────┘  └──────────────┘       │
-│                                                                │
-│  Shared Packages:                                             │
-│  @repo/ui  @repo/types  @repo/hooks  @repo/utils             │
-└────────────────┬─────────────────────────────────────────────┘
-                 │ REST API (JSON)
-┌────────────────▼─────────────────────────────────────────────┐
-│                     API Gateway Layer                         │
-├──────────────────────────────────────────────────────────────┤
-│  Nginx (Reverse Proxy + Load Balancer)                       │
-│  - SSL Termination                                            │
-│  - Rate Limiting                                              │
-│  - Request Routing                                            │
-└────────────────┬─────────────────────────────────────────────┘
-                 │
-┌────────────────▼─────────────────────────────────────────────┐
-│                      Backend Layer                            │
-├──────────────────────────────────────────────────────────────┤
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │        Spring Boot Application (Multi-instance)       │   │
-│  ├──────────────────────────────────────────────────────┤   │
-│  │  Controller Layer                                     │   │
-│  │    - REST API Endpoints                               │   │
-│  │    - Request Validation                               │   │
-│  │    - JWT Authentication Filter                        │   │
-│  ├──────────────────────────────────────────────────────┤   │
-│  │  Service Layer                                        │   │
-│  │    - Business Logic                                   │   │
-│  │    - Transaction Management                           │   │
-│  │    - DTO ↔ Entity Mapping                            │   │
-│  ├──────────────────────────────────────────────────────┤   │
-│  │  Repository Layer                                     │   │
-│  │    - JPA Repositories                                 │   │
-│  │    - QueryDSL Custom Queries                          │   │
-│  └──────────────────────────────────────────────────────┘   │
-│                                                                │
-│  Domain Modules:                                              │
-│  auth  users  product  reservation  payment  contents  ...   │
-└────────────┬──────────────────┬────────────────┬─────────────┘
-             │                  │                │
-┌────────────▼──────┐  ┌───────▼───────┐  ┌────▼─────────┐
-│   PostgreSQL      │  │     Redis      │  │   AWS S3     │
-│   (RDS)           │  │   (Cache)      │  │  (Storage)   │
-│                   │  │                │  │              │
-│  - User Data      │  │  - Sessions    │  │  - Images    │
-│  - Products       │  │  - Cache       │  │  - Videos    │
-│  - Reservations   │  │  - Queue       │  │  - Files     │
-│  - Payments       │  │                │  │              │
-└───────────────────┘  └────────────────┘  └──────────────┘
-
-┌──────────────────────────────────────────────────────────────┐
-│                    External Services                          │
-├──────────────────────────────────────────────────────────────┤
-│  - 이롬넷 PG (Payment Gateway)                                 │
-│  - ChatGPT API (Place Name Correction)                       │
-│  - 공휴일 API (Holiday Information)                            │
-└──────────────────────────────────────────────────────────────┘
-
-┌──────────────────────────────────────────────────────────────┐
-│                  Monitoring & Logging                         │
-├──────────────────────────────────────────────────────────────┤
-│  Grafana ← Prometheus ← cAdvisor / node-exporter             │
-│  Grafana ← Loki ← Promtail ← Application Logs                │
-│  k6 → InfluxDB → Grafana (Performance Testing)               │
-└──────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    Client[Client Layer<br/>Web Browser]
+    
+    subgraph Frontend[Frontend Layer]
+        Platform[Platform]
+        Admin[Admin]
+        Backoffice[Backoffice]
+    end
+    
+    Gateway[API Gateway Layer<br/>Nginx]
+    
+    subgraph Backend[Backend Layer]
+        Spring[Spring Boot]
+        Controller[Controller]
+        Service[Service]
+        Repository[Repository]
+        
+        Spring --> Controller
+        Controller --> Service
+        Service --> Repository
+    end
+    
+    subgraph Data[Data Layer]
+        PostgreSQL[(PostgreSQL)]
+        Redis[(Redis)]
+        S3[S3 Storage]
+    end
+    
+    subgraph External[External Services]
+        PG[이롬넷 PG]
+        ChatGPT[ChatGPT API]
+        Holiday[공휴일 API]
+    end
+    
+    subgraph Monitor[Monitoring]
+        Prometheus[Prometheus]
+        Loki[Loki]
+        Grafana[Grafana]
+        
+        Prometheus --> Grafana
+        Loki --> Grafana
+    end
+    
+    Client -->|HTTPS| Frontend
+    Frontend -->|REST API| Gateway
+    Gateway --> Backend
+    Backend --> PostgreSQL
+    Backend --> Redis
+    Backend --> S3
+    Backend -.-> PG
+    Backend -.-> ChatGPT
+    Backend -.-> Holiday
+    Backend -.-> Prometheus
+    Backend -.-> Loki
+    
+    style Client fill:#e1f5ff,stroke:#01579b
+    style Frontend fill:#f3e5f5,stroke:#4a148c
+    style Gateway fill:#fff3e0,stroke:#e65100
+    style Backend fill:#e8f5e9,stroke:#1b5e20
+    style Data fill:#fce4ec,stroke:#880e4f
+    style External fill:#fff9c4,stroke:#f57f17
+    style Monitor fill:#e0f2f1,stroke:#004d40
 ```
 
 ### 주요 통신 플로우
 
 #### 1. 사용자 인증 플로우
-```
-User → Frontend → Backend (/api/v1/users/login)
-                        ↓
-                 Validate Credentials
-                        ↓
-                 Generate JWT Token
-                        ↓
-                 Set HttpOnly Cookie
-                        ↓
-Frontend ← Backend (Token + User Info)
-    ↓
-Store in State Management
-    ↓
-Subsequent Requests include JWT
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Frontend
+    participant Backend
+    participant DB as Database
+    
+    User->>Frontend: 로그인 요청
+    Frontend->>Backend: POST /api/v1/users/login
+    Backend->>DB: Validate Credentials
+    DB-->>Backend: User Info
+    Backend->>Backend: Generate JWT Token
+    Backend->>Backend: Set HttpOnly Cookie
+    Backend-->>Frontend: Token + User Info
+    Frontend->>Frontend: Store in State Management
+    Note over Frontend,Backend: 이후 모든 요청에 JWT 포함
+    Frontend->>Backend: Subsequent Requests (with JWT)
+    Backend-->>Frontend: Authorized Response
 ```
 
 #### 2. 상품 조회 플로우
-```
-User → Frontend → Backend (/api/v1/products)
-                        ↓
-                 Check Redis Cache
-                        ↓ (Cache Miss)
-                 Query PostgreSQL
-                        ↓
-                 Apply QueryDSL Filters
-                        ↓
-                 Map Entity → DTO
-                        ↓
-                 Store in Redis
-                        ↓
-Frontend ← Backend (Product List)
-    ↓
-Render Product Cards
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Frontend
+    participant Backend
+    participant Redis
+    participant PostgreSQL
+    
+    User->>Frontend: 상품 목록 요청
+    Frontend->>Backend: GET /api/v1/products
+    Backend->>Redis: Check Cache
+    alt Cache Hit
+        Redis-->>Backend: Cached Data
+    else Cache Miss
+        Backend->>PostgreSQL: Query with Filters
+        PostgreSQL-->>Backend: Product Entities
+        Backend->>Backend: Apply QueryDSL Filters
+        Backend->>Backend: Map Entity → DTO
+        Backend->>Redis: Store in Cache (TTL: 10m)
+    end
+    Backend-->>Frontend: Product List
+    Frontend->>Frontend: Render Product Cards
+    Frontend-->>User: Display Products
 ```
 
 #### 3. 예약 및 결제 플로우
-```
-User → Frontend: Select Product & Schedule
-    ↓
-Frontend → Backend (/api/v1/payments/prepare)
-    ↓
-Backend: Create Payment Record (PENDING)
-    ↓
-Frontend ← Backend: Payment Info
-    ↓
-Frontend: Open Payment SDK (이롬넷)
-    ↓
-User: Complete Payment
-    ↓
-이롬넷 PG → Backend Webhook (/api/v1/payments/confirm)
-    ↓
-Backend: 
-  - Verify Payment
-  - Update Payment Status (SUCCESS)
-  - Create Reservation
-  - Send Confirmation Email
-    ↓
-Frontend ← Backend: Success Response
-    ↓
-User: View Reservation Confirmation
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Frontend
+    participant Backend
+    participant DB as Database
+    participant PG as 이롬넷 PG
+    participant Email as Email Service
+    
+    User->>Frontend: 상품 & 스케줄 선택
+    Frontend->>Backend: POST /api/v1/payments/prepare
+    Backend->>DB: Create Payment Record (PENDING)
+    DB-->>Backend: Payment ID
+    Backend-->>Frontend: Payment Info
+    
+    Frontend->>PG: Open Payment SDK
+    User->>PG: 결제 정보 입력 & 승인
+    
+    PG->>Backend: Webhook /api/v1/payments/confirm
+    Backend->>PG: Verify Payment
+    PG-->>Backend: Payment Verified
+    
+    Backend->>DB: Update Payment Status (SUCCESS)
+    Backend->>DB: Create Reservation
+    Backend->>Email: Send Confirmation Email
+    Backend-->>Frontend: Success Response
+    
+    Frontend-->>User: 예약 확인 페이지 표시
 ```
 
 ---
@@ -216,7 +221,7 @@ User: View Reservation Confirmation
 
 ### 모노레포 구조 (Turborepo)
 
-```
+```plaintext
 TRIT-FE/
 ├── apps/
 │   ├── platform/          # 사용자용 웹 애플리케이션
@@ -270,6 +275,7 @@ TRIT-FE/
 ### 주요 아키텍처 패턴
 
 #### 1. Feature-First Structure
+
 각 페이지/기능별로 컴포넌트를 그룹화하여 응집도를 높입니다.
 
 ```typescript
@@ -285,6 +291,7 @@ src/app/products/
 ```
 
 #### 2. API Client Layer
+
 중앙화된 API 클라이언트로 일관된 에러 처리 및 인증 관리
 
 ```typescript
@@ -315,6 +322,7 @@ export const productApi = {
 #### 3. State Management Strategy
 
 **React Query** for Server State:
+
 ```typescript
 // hooks/useProducts.ts
 export function useProducts(params: ProductListParams) {
@@ -328,6 +336,7 @@ export function useProducts(params: ProductListParams) {
 ```
 
 **Zustand** for Client State:
+
 ```typescript
 // stores/authStore.ts
 export const useAuthStore = create<AuthState>((set) => ({
@@ -362,6 +371,7 @@ export const Button: React.FC<ButtonProps> = ({
 ```
 
 Storybook으로 문서화:
+
 ```typescript
 // packages/ui/src/Button/Button.stories.tsx
 export default {
@@ -383,42 +393,53 @@ export const Primary: Story = {
 
 ### 레이어드 아키텍처
 
-```
-┌─────────────────────────────────────────────────┐
-│              Controller Layer                    │
-│  - REST API Endpoints                            │
-│  - Request/Response DTOs                         │
-│  - Input Validation (@Valid)                     │
-│  - JWT Authentication (@Login)                   │
-└────────────────┬────────────────────────────────┘
-                 │
-┌────────────────▼────────────────────────────────┐
-│              Service Layer                       │
-│  - Business Logic                                │
-│  - Transaction Management (@Transactional)       │
-│  - DTO ↔ Entity Mapping (MapStruct)             │
-│  - External API Integration                      │
-└────────────────┬────────────────────────────────┘
-                 │
-┌────────────────▼────────────────────────────────┐
-│            Repository Layer                      │
-│  - JPA Repositories                              │
-│  - QueryDSL Custom Queries                       │
-│  - Database Access                               │
-└────────────────┬────────────────────────────────┘
-                 │
-┌────────────────▼────────────────────────────────┐
-│              Database                            │
-│  - PostgreSQL                                    │
-│  - Liquibase Migrations                          │
-└──────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Controller["🎮 Controller Layer"]
+        C1["REST API Endpoints"]
+        C2["Request/Response DTOs"]
+        C3["Input Validation (@Valid)"]
+        C4["JWT Authentication (@Login)"]
+    end
+    
+    subgraph Service["⚡ Service Layer"]
+        S1["Business Logic"]
+        S2["Transaction Management (@Transactional)"]
+        S3["DTO ↔ Entity Mapping (MapStruct)"]
+        S4["External API Integration"]
+    end
+    
+    subgraph Repository["📚 Repository Layer"]
+        R1["JPA Repositories"]
+        R2["QueryDSL Custom Queries"]
+        R3["Database Access"]
+    end
+    
+    subgraph Database["💾 Database"]
+        D1["PostgreSQL"]
+        D2["Liquibase Migrations"]
+    end
+    
+    Controller --> Service
+    Service --> Repository
+    Repository --> Database
+    
+    classDef controllerStyle fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    classDef serviceStyle fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    classDef repoStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    classDef dbStyle fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    
+    class Controller,C1,C2,C3,C4 controllerStyle
+    class Service,S1,S2,S3,S4 serviceStyle
+    class Repository,R1,R2,R3 repoStyle
+    class Database,D1,D2 dbStyle
 ```
 
 ### 도메인 모듈 구조
 
 각 도메인은 독립적인 패키지로 관리되며, 향후 마이크로서비스 전환 가능:
 
-```
+```plaintext
 backend/src/main/java/today/story/backend/product/
 ├── controller/
 │   └── ProductController.java
@@ -609,7 +630,7 @@ public class ProductService {
 
 ### ERD 주요 엔티티
 
-```
+```plaintext
 Users (사용자)
 ├── id (PK)
 ├── loginId
@@ -723,6 +744,7 @@ UserCoupons (사용자 쿠폰)
 ### 인덱스 전략
 
 #### 조회 성능 최적화
+
 ```sql
 -- 상품 검색 최적화
 CREATE INDEX idx_product_category ON products(category);
@@ -744,10 +766,10 @@ CREATE INDEX idx_contents_view_count ON contents(view_count DESC);
 ### Liquibase 마이그레이션 전략
 
 ```yaml
-# db/changelog/2025/2025-01-15-add-product-indexes.yaml
+# db/changelog/2025/2025-10-15-add-product-indexes.yaml
 databaseChangeLog:
   - changeSet:
-      id: 2025-01-15-add-product-indexes
+      id: 2025-10-15-add-product-indexes
       author: backend-team
       changes:
         - createIndex:
@@ -777,58 +799,77 @@ databaseChangeLog:
 
 ### AWS 인프라
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    AWS Cloud (ap-northeast-2)            │
-├─────────────────────────────────────────────────────────┤
-│                                                           │
-│  ┌────────────────────────────────────────────────────┐ │
-│  │               VPC (Virtual Private Cloud)           │ │
-│  │                                                      │ │
-│  │  ┌──────────────────────────────────────────────┐  │ │
-│  │  │          Public Subnet (AZ-1)                 │  │ │
-│  │  │  ┌────────────────┐    ┌──────────────────┐  │  │ │
-│  │  │  │   EC2 Web 1    │    │   EC2 Web 2      │  │  │ │
-│  │  │  │  (Backend App) │    │  (Backend App)   │  │  │ │
-│  │  │  │  + Nginx       │    │  + Nginx         │  │  │ │
-│  │  │  └────────────────┘    └──────────────────┘  │  │ │
-│  │  └──────────────────────────────────────────────┘  │ │
-│  │                                                      │ │
-│  │  ┌──────────────────────────────────────────────┐  │ │
-│  │  │         Private Subnet (AZ-1, AZ-2)          │  │ │
-│  │  │  ┌────────────────┐    ┌──────────────────┐  │  │ │
-│  │  │  │   RDS Primary  │───▶│  RDS Replica     │  │  │ │
-│  │  │  │  (PostgreSQL)  │    │  (Read Replica)  │  │  │ │
-│  │  │  └────────────────┘    └──────────────────┘  │  │ │
-│  │  │                                                │  │ │
-│  │  │  ┌────────────────┐                           │  │ │
-│  │  │  │ ElastiCache    │                           │  │ │
-│  │  │  │   (Redis)      │                           │  │ │
-│  │  │  └────────────────┘                           │  │ │
-│  │  └──────────────────────────────────────────────┘  │ │
-│  └──────────────────────────────────────────────────┘ │
-│                                                           │
-│  ┌────────────────────────────────────────────────────┐ │
-│  │               S3 Buckets                            │ │
-│  │  - trit-images (Images)                             │ │
-│  │  - trit-videos (Videos)                             │ │
-│  │  - trit-backups (Database Backups)                  │ │
-│  └────────────────────────────────────────────────────┘ │
-│                                                           │
-│  ┌────────────────────────────────────────────────────┐ │
-│  │         CloudFront (CDN)                            │ │
-│  │  - Static Assets Distribution                       │ │
-│  │  - Image Optimization                               │ │
-│  └────────────────────────────────────────────────────┘ │
-│                                                           │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph Vercel["☁️ Vercel (Frontend Hosting)"]
+        PlatformApp["Platform App<br/>(Next.js)"]
+        AdminApp["Admin App<br/>(Next.js)"]
+        BackofficeApp["Backoffice App<br/>(Next.js)"]
+    end
 
-┌─────────────────────────────────────────────────────────┐
-│                Vercel (Frontend Hosting)                 │
-│  - Next.js Platform App                                  │
-│  - Next.js Admin App                                     │
-│  - Next.js Backoffice App                                │
-└─────────────────────────────────────────────────────────┘
+    subgraph AWS["☁️ AWS Cloud (ap-northeast-2)"]
+        subgraph VPC["🔒 VPC (Virtual Private Cloud)"]
+            subgraph PublicSubnet["🌐 Public Subnet (AZ-1)"]
+                EC2Web1["EC2 Web 1<br/>(Backend App + Nginx)"]
+                EC2Web2["EC2 Web 2<br/>(Backend App + Nginx)"]
+            end
+            
+            subgraph PrivateSubnet["🔐 Private Subnet (AZ-1, AZ-2)"]
+                RDSPrimary["RDS Primary<br/>(PostgreSQL)"]
+                RDSReplica["RDS Replica<br/>(Read Replica)"]
+                ElastiCache["ElastiCache<br/>(Redis)"]
+                
+                RDSPrimary -->|Replication| RDSReplica
+            end
+        end
+        
+        subgraph Storage["📦 Storage Services"]
+            S3Images["S3: trit-images<br/>(Images)"]
+            S3Videos["S3: trit-videos<br/>(Videos)"]
+            S3Backups["S3: trit-backups<br/>(DB Backups)"]
+        end
+        
+        CloudFront["🚀 CloudFront (CDN)<br/>- Static Assets<br/>- Image Optimization"]
+    end
+
+    Vercel -->|HTTPS| EC2Web1
+    Vercel -->|HTTPS| EC2Web2
+    
+    EC2Web1 --> RDSPrimary
+    EC2Web2 --> RDSPrimary
+    EC2Web1 -.->|Read| RDSReplica
+    EC2Web2 -.->|Read| RDSReplica
+    
+    EC2Web1 --> ElastiCache
+    EC2Web2 --> ElastiCache
+    
+    EC2Web1 --> S3Images
+    EC2Web2 --> S3Videos
+    RDSPrimary -.->|Backup| S3Backups
+    
+    CloudFront --> S3Images
+    CloudFront --> S3Videos
+    Vercel -.->|Static Assets| CloudFront
+    
+    classDef vercelStyle fill:#000000,stroke:#ffffff,stroke-width:2px,color:#ffffff
+    classDef vpcStyle fill:#ff9900,stroke:#232f3e,stroke-width:3px
+    classDef publicStyle fill:#7aa116,stroke:#1b5e20,stroke-width:2px
+    classDef privateStyle fill:#d13212,stroke:#b71c1c,stroke-width:2px
+    classDef ec2Style fill:#ff9900,stroke:#232f3e,stroke-width:2px
+    classDef rdsStyle fill:#527fff,stroke:#0d47a1,stroke-width:2px
+    classDef cacheStyle fill:#dc382d,stroke:#c62828,stroke-width:2px
+    classDef s3Style fill:#569a31,stroke:#1b5e20,stroke-width:2px
+    classDef cdnStyle fill:#8c4fff,stroke:#4a148c,stroke-width:2px
+    
+    class PlatformApp,AdminApp,BackofficeApp vercelStyle
+    class VPC vpcStyle
+    class PublicSubnet publicStyle
+    class PrivateSubnet privateStyle
+    class EC2Web1,EC2Web2 ec2Style
+    class RDSPrimary,RDSReplica rdsStyle
+    class ElastiCache cacheStyle
+    class S3Images,S3Videos,S3Backups s3Style
+    class CloudFront cdnStyle
 ```
 
 ### 배포 아키텍처
@@ -940,6 +981,7 @@ networks:
 ```
 
 **토큰 저장 전략**:
+
 - **Access Token**: HttpOnly Cookie (XSS 방지)
 - **Refresh Token**: Secure HttpOnly Cookie, Database 저장
 - **만료 시간**: Access Token 1시간, Refresh Token 14일
@@ -947,76 +989,26 @@ networks:
 #### 권한 관리
 
 ```java
-@PreAuthorize("hasRole('ADMIN')")
+// Controller Layer
 @GetMapping("/admin/users")
-public ResultResponse<PageResponse<UserResponse>> getAllUsers() {
+public ResponseEntity<ResultResponse<PageResponse<UserResponse>>> getAllUsers(
+  @Login AuthInfo authInfo
+) {
   // Admin only
 }
 
-@PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-@PostMapping("/products")
-public ResultResponse<Long> createProduct(@RequestBody ProductCreateRequest request) {
-  // Company or Admin
-}
-```
-
-### 데이터 보안
-
-#### 민감 정보 암호화
-
-```java
-// Password Hashing
-@Bean
-public PasswordEncoder passwordEncoder() {
-  return new BCryptPasswordEncoder(12); // Strong hashing
-}
-
-// PII Encryption (AES-256)
-@Converter
-public class EncryptedStringConverter implements AttributeConverter<String, String> {
-  
-  @Override
-  public String convertToDatabaseColumn(String attribute) {
-    return AesEncryptor.encrypt(attribute);
+// Service Layer
+@Override
+public ResultResponse<PageResponse<UserResponse>> getAllUesrs(
+  AuthInfo authInfo
+){
+  if(!authInfo.isAdmin()){
+    throw new NoGrantedException();
   }
-  
-  @Override
-  public String convertToEntityAttribute(String dbData) {
-    return AesEncryptor.decrypt(dbData);
-  }
-}
-
-@Entity
-public class User {
-  
-  @Convert(converter = EncryptedStringConverter.class)
-  private String email;
-  
-  @Convert(converter = EncryptedStringConverter.class)
-  private String phoneNumber;
 }
 ```
 
 ### API 보안
-
-#### Rate Limiting (Nginx)
-
-```nginx
-http {
-  limit_req_zone $binary_remote_addr zone=api_limit:10m rate=100r/m;
-  limit_req_zone $binary_remote_addr zone=login_limit:10m rate=5r/m;
-  
-  server {
-    location /api/ {
-      limit_req zone=api_limit burst=20 nodelay;
-    }
-    
-    location /api/v1/users/login {
-      limit_req zone=login_limit burst=3 nodelay;
-    }
-  }
-}
-```
 
 #### CORS 설정
 
@@ -1027,7 +1019,7 @@ public class WebConfig implements WebMvcConfigurer {
   @Override
   public void addCorsMappings(CorsRegistry registry) {
     registry.addMapping("/api/**")
-        .allowedOrigins("https://trit.today", "https://admin.trit.today")
+        .allowedOrigins("https://trit.app", "https://admin.trit.app","https://backoffice.trit.app")
         .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH")
         .allowedHeaders("*")
         .allowCredentials(true)
@@ -1039,61 +1031,6 @@ public class WebConfig implements WebMvcConfigurer {
 ---
 
 ## ⚡ 성능 최적화
-
-### 캐싱 전략
-
-#### Redis 캐시 레이어
-
-```java
-@Service
-@RequiredArgsConstructor
-public class ProductService {
-  
-  private final RedisTemplate<String, Object> redisTemplate;
-  private static final String PRODUCT_CACHE_KEY = "product:";
-  private static final Duration CACHE_TTL = Duration.ofMinutes(10);
-  
-  public ProductResponse getProduct(Long id) {
-    String cacheKey = PRODUCT_CACHE_KEY + id;
-    
-    // Check cache first
-    ProductResponse cached = (ProductResponse) redisTemplate.opsForValue().get(cacheKey);
-    if (cached != null) {
-      return cached;
-    }
-    
-    // Cache miss - query database
-    Product product = productRepository.findById(id)
-        .orElseThrow(() -> new ProductNotFoundException(id));
-    
-    ProductResponse response = productMapper.toResponse(product);
-    
-    // Store in cache
-    redisTemplate.opsForValue().set(cacheKey, response, CACHE_TTL);
-    
-    return response;
-  }
-  
-  @Transactional
-  public void updateProduct(Long id, ProductUpdateRequest request) {
-    // Update logic...
-    
-    // Invalidate cache
-    String cacheKey = PRODUCT_CACHE_KEY + id;
-    redisTemplate.delete(cacheKey);
-  }
-}
-```
-
-#### 캐시 전략별 적용
-
-| 데이터 유형 | 캐시 전략 | TTL | 설명 |
-|------------|----------|-----|------|
-| 상품 목록 | Cache-Aside | 10분 | 자주 조회, 적은 변경 |
-| 상품 상세 | Cache-Aside | 10분 | 높은 조회 빈도 |
-| 사용자 세션 | Write-Through | 1시간 | 즉시 반영 필요 |
-| 인기 콘텐츠 | Write-Behind | 30분 | 조회수 등 집계 |
-| 공휴일 정보 | Read-Through | 24시간 | 거의 변경 없음 |
 
 ### 데이터베이스 최적화
 
@@ -1191,18 +1128,46 @@ import { FixedSizeList } from 'react-window';
 
 ### 모니터링 스택
 
-```
-Application Metrics:
-  Spring Boot Actuator → Prometheus → Grafana
-
-Logs:
-  Application Logs → Promtail → Loki → Grafana
-
-Infrastructure Metrics:
-  node-exporter + cAdvisor → Prometheus → Grafana
-
-Performance Testing:
-  k6 → InfluxDB → Grafana
+```mermaid
+graph LR
+    subgraph AppMetrics["📊 Application Metrics"]
+        Actuator["Spring Boot<br/>Actuator"]
+        Actuator --> Prometheus1["Prometheus"]
+        Prometheus1 --> Grafana1["Grafana"]
+    end
+    
+    subgraph Logs["📝 Logs"]
+        AppLogs["Application<br/>Logs"]
+        AppLogs --> Promtail
+        Promtail --> Loki
+        Loki --> Grafana2["Grafana"]
+    end
+    
+    subgraph InfraMetrics["🖥 Infrastructure Metrics"]
+        NodeExporter["node-exporter"]
+        cAdvisor["cAdvisor"]
+        NodeExporter --> Prometheus2["Prometheus"]
+        cAdvisor --> Prometheus2
+        Prometheus2 --> Grafana3["Grafana"]
+    end
+    
+    subgraph PerfTest["⚡ Performance Testing"]
+        K6["k6"]
+        K6 --> InfluxDB
+        InfluxDB --> Grafana4["Grafana"]
+    end
+    
+    classDef metricsStyle fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    classDef logsStyle fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef infraStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    classDef perfStyle fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    classDef grafanaStyle fill:#ff6f00,stroke:#e65100,stroke-width:3px,color:#ffffff
+    
+    class Actuator,Prometheus1 metricsStyle
+    class AppLogs,Promtail,Loki logsStyle
+    class NodeExporter,cAdvisor,Prometheus2 infraStyle
+    class K6,InfluxDB perfStyle
+    class Grafana1,Grafana2,Grafana3,Grafana4 grafanaStyle
 ```
 
 ### 주요 메트릭
@@ -1239,11 +1204,13 @@ public class ProductService {
 #### Grafana 대시보드
 
 **시스템 대시보드**:
+
 - CPU/Memory/Disk 사용률
 - Network I/O
 - Container Health Status
 
 **애플리케이션 대시보드**:
+
 - API Request Rate (req/s)
 - Response Time (p50, p95, p99)
 - Error Rate
@@ -1251,6 +1218,7 @@ public class ProductService {
 - Cache Hit Rate
 
 **비즈니스 대시보드**:
+
 - Daily Active Users (DAU)
 - Reservation Conversion Rate
 - Payment Success Rate
@@ -1288,6 +1256,7 @@ public class PaymentService {
 ```
 
 **로그 레벨 전략**:
+
 - **ERROR**: 즉시 대응 필요한 오류
 - **WARN**: 주의 필요한 상황 (deprecated API 사용, 성능 저하 등)
 - **INFO**: 주요 비즈니스 이벤트 (로그인, 결제, 예약 등)
@@ -1299,20 +1268,20 @@ public class PaymentService {
 
 ### ADR-001: Monorepo 전략 채택 (Frontend)
 
-**날짜**: 2024-12-01  
-**상태**: 승인됨
-
 **컨텍스트**:
+
 - 여러 프론트엔드 애플리케이션 (Platform, Admin, Backoffice) 필요
 - 공통 컴포넌트 및 로직 재사용 필요
 - 일관된 개발 경험 및 코드 품질 유지 필요
 
 **결정**:
+
 - Turborepo + PNPM Workspaces를 사용한 Monorepo 전략 채택
 - 공유 패키지 (@repo/ui, @repo/types, @repo/hooks 등) 구성
 - Storybook으로 디자인 시스템 문서화
 
 **결과**:
+
 - ✅ 코드 재사용성 극대화
 - ✅ 일관된 UI/UX
 - ✅ 효율적인 의존성 관리
@@ -1322,24 +1291,25 @@ public class PaymentService {
 
 ### ADR-002: JWT 기반 인증 방식
 
-**날짜**: 2024-11-15  
-**상태**: 승인됨
-
 **컨텍스트**:
+
 - Stateless 인증 방식 필요
 - 프론트엔드와 백엔드 분리 환경
 - 향후 모바일 앱 지원 고려
 
 **결정**:
+
 - JWT (JSON Web Token) 기반 인증 채택
 - Access Token (1시간) + Refresh Token (14일) 전략
 - HttpOnly Cookie에 토큰 저장 (XSS 방지)
 
 **대안**:
+
 - Session 기반 인증: Stateful, 확장성 제약
 - OAuth2: 과도한 복잡도
 
 **결과**:
+
 - ✅ Stateless 확장 가능
 - ✅ 모바일 앱 지원 용이
 - ⚠️ 토큰 탈취 시 만료까지 무효화 불가 (Refresh Token DB 관리로 보완)
@@ -1348,23 +1318,24 @@ public class PaymentService {
 
 ### ADR-003: QueryDSL 도입
 
-**날짜**: 2024-11-20  
-**상태**: 승인됨
-
 **컨텍스트**:
+
 - 복잡한 동적 쿼리 필요 (상품 필터링, 검색 등)
 - 타입 안전한 쿼리 작성 필요
 - JPQL의 한계 (컴파일 타임 오류 체크 불가)
 
 **결정**:
+
 - QueryDSL을 도입하여 타입 안전한 동적 쿼리 작성
 - Repository Custom Interface 패턴 사용
 
 **대안**:
+
 - Criteria API: 가독성 저하
 - Native Query: 타입 안전성 부족
 
 **결과**:
+
 - ✅ 타입 안전한 쿼리
 - ✅ IDE 자동완성 지원
 - ✅ 리팩토링 용이
@@ -1374,20 +1345,20 @@ public class PaymentService {
 
 ### ADR-004: Redis 캐싱 전략
 
-**날짜**: 2024-12-05  
-**상태**: 승인됨
-
 **컨텍스트**:
+
 - 상품 조회 API 높은 트래픽
 - 데이터베이스 부하 분산 필요
 - 응답 속도 개선 필요
 
 **결정**:
+
 - Redis를 L1 캐시로 도입
 - Cache-Aside 패턴 적용
 - 상품 정보 10분 TTL 설정
 
 **결과**:
+
 - ✅ 응답 시간 70% 개선 (평균 200ms → 60ms)
 - ✅ DB 부하 50% 감소
 - ⚠️ 캐시 무효화 로직 관리 필요
@@ -1396,49 +1367,28 @@ public class PaymentService {
 
 ### ADR-005: Liquibase 데이터베이스 마이그레이션
 
-**날짜**: 2024-11-10  
-**상태**: 승인됨
-
 **컨텍스트**:
+
 - 데이터베이스 스키마 버전 관리 필요
 - 다양한 환경 (dev, staging, prod) 일관성 유지
 - 롤백 기능 필요
 
 **결정**:
+
 - Liquibase를 DB 마이그레이션 도구로 채택
 - YAML 형식 changeSet 사용
 - 모든 스키마 변경 사항 버전 관리
 
 **대안**:
+
 - Flyway: SQL 기반, 롤백 기능 제한적
 
 **결과**:
+
 - ✅ 스키마 버전 관리
 - ✅ 자동화된 마이그레이션
 - ✅ 롤백 기능
 - ⚠️ 학습 곡선 존재
-
----
-
-## 🔮 향후 계획
-
-### 단기 (3개월)
-- [ ] API Gateway 도입 (Kong or AWS API Gateway)
-- [ ] ElasticSearch 도입 (전문 검색)
-- [ ] WebSocket 실시간 알림
-- [ ] 이미지 CDN 최적화
-
-### 중기 (6개월)
-- [ ] 마이크로서비스 전환 (점진적)
-- [ ] Kubernetes 기반 오케스트레이션
-- [ ] GraphQL API 제공
-- [ ] 모바일 앱 지원 (React Native)
-
-### 장기 (1년)
-- [ ] AI 기반 개인화 추천 시스템
-- [ ] 글로벌 서비스 확장 (다국어, 다지역)
-- [ ] 블록체인 기반 리워드 시스템
-- [ ] AR/VR 여행 체험 기능
 
 ---
 
@@ -1453,7 +1403,6 @@ public class PaymentService {
 
 ---
 
-**문서 관리자**: Backend Team & Frontend Team  
-**최종 검토**: 2025-01-15  
-**다음 검토 예정**: 2025-04-15
-
+**문서 관리자**: Ted
+**최종 검토**: 2025-10-15  
+**다음 검토 예정**: 2025-11-15

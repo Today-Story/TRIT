@@ -31,7 +31,7 @@ Cookie: accessToken=eyJ...
         "contentsId": 10,
         "title": "제주 숨은 명소",
         "thumbnailImage": "...",
-        "viewedAt": "2025-01-15T10:30:00"
+        "viewedAt": "2025-10-15T10:30:00"
       }
     ]
   }
@@ -68,4 +68,4 @@ Cookie: accessToken=eyJ...
 
 ---
 
-**문서 작성자**: Backend Team
+**문서 작성자**: Ted

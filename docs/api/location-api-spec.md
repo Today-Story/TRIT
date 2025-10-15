@@ -2,6 +2,7 @@
 
 **Base URL**: `/api/v1/locations`  
 **버전**: v1.0
+**최종 업데이트**: 2025-10-15
 
 ---
 
@@ -50,4 +51,4 @@ GET /api/v1/locations/geocode?address=제주특별자치도 제주시
 
 ---
 
-**문서 작성자**: Backend Team
+**문서 작성자**: Ted

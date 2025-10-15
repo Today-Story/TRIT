@@ -70,8 +70,6 @@
 
 **문서에만 있는 엔드포인트** (미구현):
 - ❌ `POST /custom` - 맞춤 코스 생성
-- ❌ `POST /{courseId}/save` - 코스 저장
-- ❌ `POST /{courseId}/like` - 코스 좋아요
 - ❌ `POST /calculate-route` - 경로 계산
 
 **차이점**:
