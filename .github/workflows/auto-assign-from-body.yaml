@@ -1,0 +1,84 @@
+name: Auto Assign from Body
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  assign-issue:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Extract assignee from issue body
+        id: extract
+        run: |
+          echo "Parsing issue body for assignee..."
+          BODY="${{ github.event.issue.body }}"
+
+          # '### 담당자' 다음의 빈 줄 + 입력 줄 대응
+          USER_LINE=$(printf "%s\n" "$BODY" | awk '/^### 담당자/{getline; getline; print}' | tr -d '\r')
+
+          echo "Raw extracted line: $USER_LINE"
+
+          # '@' 제거 및 공백 제거
+          USERNAME=$(echo "$USER_LINE" | sed 's/^@//;s/ *$//')
+          echo "username=$USERNAME" >> $GITHUB_OUTPUT
+
+      - name: Check if user can be assigned (via collaborators list)
+        id: check
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const username = "${{ steps.extract.outputs.username }}";
+            const collaborators = await github.paginate(
+              github.rest.repos.listCollaborators,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+              }
+            );
+
+            const matched = collaborators.find(user => user.login.toLowerCase() === username.toLowerCase());
+
+            return matched ? true : false;
+
+      - name: Assign issue
+        if: steps.check.outputs.result == 'true'
+        uses: actions-ecosystem/action-add-assignees@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          assignees: ${{ steps.extract.outputs.username }}
+
+      - name: Comment if assignment failed
+        if: steps.check.outputs.result != 'true'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            ❗️ *자동 할당 실패:* 지정된 담당자 `${{ steps.extract.outputs.username }}` 는 이 리포지토리의 Collaborator가 아니거나 권한이 없습니다. 수동으로 확인해 주세요.
+
+      - name: Notify Slack (with 8398a7/action-slack@v3)
+        if: steps.check.outputs.result == 'true'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "attachments": [
+                {
+                  "color": "#2eb886",
+                  "pretext": ":bust_in_silhouette: *이슈 자동 할당 완료!*",
+                  "title": ":link: 이슈 보기",
+                  "title_link": "${{ github.event.issue.html_url }}",
+                  "text": "*제목:* `${{ github.event.issue.title }}`\n*담당자:* `${{ steps.extract.outputs.username }}`\n*작성자:* `${{ github.event.issue.user.login }}`",
+                  "footer": "GitHub Actions",
+                  "footer_icon": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
