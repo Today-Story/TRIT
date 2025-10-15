@@ -2,120 +2,78 @@
 
 **Base URL**: `/api/v1/holidays`  
 **버전**: v1.0  
-**최종 업데이트**: 2025-01-15
+**최종 업데이트**: 2025-01-15  
+**구현 상태**: 🚧 부분 구현 (기본 조회 및 동기화만 가능)
+
+---
+
+## ⚠️ 중요 공지
+
+현재 **공휴일 조회 및 동기화 기능만 구현**되어 있습니다.
+영업일 계산, 캘린더 데이터 등의 고급 기능은 향후 구현 예정입니다.
 
 ---
 
 ## 개요
 
-Holiday API는 공휴일 정보 조회 및 예약 가능 여부 확인 기능을 제공합니다.
+Holiday API는 공휴일 정보 조회 및 동기화 기능을 제공합니다.
 
-### 주요 기능
-- 연도별 공휴일 목록 조회
+### 현재 구현된 기능
+- ✅ 연도/월별 공휴일 조회
+- ✅ 공휴일 동기화 (관리자용)
+
+### 🚧 향후 구현 예정
 - 특정 날짜 공휴일 여부 확인
-- 영업일 계산
-- 공휴일 캘린더 데이터
+- 기간 내 영업일 계산
+- N일 후 영업일 계산
+- 월별 캘린더 데이터 조회
+- 다음 공휴일 조회
+- 롱 위켄드 조회
 
 ---
 
 ## API 엔드포인트
 
-### 1. 연도별 공휴일 목록 조회
+### 1. 연도/월별 공휴일 조회 ✅
 
 ```http
-GET /api/v1/holidays?year=2025
+GET /api/v1/holidays?year=2025&month=1
 ```
 
 **Query Parameters**
 
 | 파라미터 | 타입 | 필수 | 설명 |
 |---------|------|------|------|
-| year | Integer | ✅ | 조회할 연도 (2020-2030) |
-| month | Integer | ❌ | 특정 월 필터 (1-12) |
+| year | Integer | ✅ | 조회할 연도 |
+| month | Integer | ✅ | 조회할 월 (1-12) |
 
 **Response (200 OK)**
 
 ```json
 {
   "success": true,
-  "data": {
-    "year": 2025,
-    "holidays": [
-      {
-        "date": "2025-01-01",
-        "name": "신정",
-        "isRecurring": true,
-        "type": "NATIONAL"
-      },
-      {
-        "date": "2025-01-28",
-        "name": "설날 연휴",
-        "isRecurring": false,
-        "type": "LUNAR"
-      },
-      {
-        "date": "2025-01-29",
-        "name": "설날",
-        "isRecurring": false,
-        "type": "LUNAR"
-      },
-      {
-        "date": "2025-01-30",
-        "name": "설날 연휴",
-        "isRecurring": false,
-        "type": "LUNAR"
-      },
-      {
-        "date": "2025-03-01",
-        "name": "삼일절",
-        "isRecurring": true,
-        "type": "NATIONAL"
-      },
-      {
-        "date": "2025-05-05",
-        "name": "어린이날",
-        "isRecurring": true,
-        "type": "NATIONAL"
-      },
-      {
-        "date": "2025-05-06",
-        "name": "대체공휴일(어린이날)",
-        "isRecurring": false,
-        "type": "SUBSTITUTE"
-      },
-      {
-        "date": "2025-06-06",
-        "name": "현충일",
-        "isRecurring": true,
-        "type": "NATIONAL"
-      },
-      {
-        "date": "2025-08-15",
-        "name": "광복절",
-        "isRecurring": true,
-        "type": "NATIONAL"
-      },
-      {
-        "date": "2025-10-03",
-        "name": "개천절",
-        "isRecurring": true,
-        "type": "NATIONAL"
-      },
-      {
-        "date": "2025-10-09",
-        "name": "한글날",
-        "isRecurring": true,
-        "type": "NATIONAL"
-      },
-      {
-        "date": "2025-12-25",
-        "name": "크리스마스",
-        "isRecurring": true,
-        "type": "NATIONAL"
-      }
-    ],
-    "totalHolidays": 12
-  },
+  "data": [
+    {
+      "date": "2025-01-01",
+      "name": "신정",
+      "isRecurring": true
+    },
+    {
+      "date": "2025-01-28",
+      "name": "설날 연휴",
+      "isRecurring": false
+    },
+    {
+      "date": "2025-01-29",
+      "name": "설날",
+      "isRecurring": false
+    },
+    {
+      "date": "2025-01-30",
+      "name": "설날 연휴",
+      "isRecurring": false
+    }
+  ],
   "message": null,
   "errorCode": null
 }
@@ -123,19 +81,45 @@ GET /api/v1/holidays?year=2025
 
 ---
 
-### 2. 특정 날짜 공휴일 여부 확인
+### 2. 공휴일 동기화 (관리자용) ✅
+
+외부 API(행정안전부)로부터 공휴일 정보를 가져와 DB에 저장합니다.
 
 ```http
-GET /api/v1/holidays/check?date=2025-01-01
+POST /api/v1/holidays/sync?year=2025&month=01
 ```
 
 **Query Parameters**
 
 | 파라미터 | 타입 | 필수 | 설명 |
 |---------|------|------|------|
-| date | String | ✅ | 확인할 날짜 (YYYY-MM-DD) |
+| year | String | ✅ | 4자리 연도 (예: "2025") |
+| month | String | ✅ | 2자리 월 (예: "01", "12") |
 
 **Response (200 OK)**
+
+```
+공휴일 동기화 완료
+```
+
+**설명**:
+- 행정안전부 공공데이터 API를 호출하여 공휴일 정보 가져오기
+- DB에 저장 (중복 제거)
+- 관리자만 호출 가능
+
+---
+
+## 🚧 향후 구현 예정 API
+
+아래 API들은 현재 백엔드에서 구현되지 않았으며, 향후 추가될 예정입니다.
+
+### 3. 특정 날짜 공휴일 여부 확인 🚧
+
+```http
+GET /api/v1/holidays/check?date=2025-01-01
+```
+
+**예상 Response**
 
 ```json
 {
@@ -146,7 +130,7 @@ GET /api/v1/holidays/check?date=2025-01-01
     "isWeekend": false,
     "holiday": {
       "name": "신정",
-      "type": "NATIONAL"
+      "isRecurring": true
     }
   },
   "message": null,
@@ -154,222 +138,36 @@ GET /api/v1/holidays/check?date=2025-01-01
 }
 ```
 
-**주말인 경우 (200 OK)**
-
-```json
-{
-  "success": true,
-  "data": {
-    "date": "2025-01-04",
-    "isHoliday": false,
-    "isWeekend": true,
-    "holiday": null
-  },
-  "message": null,
-  "errorCode": null
-}
-```
-
----
-
-### 3. 기간 내 영업일 계산
+### 4. 기간 내 영업일 계산 🚧
 
 ```http
 GET /api/v1/holidays/business-days?startDate=2025-01-01&endDate=2025-01-31
 ```
 
-**Query Parameters**
-
-| 파라미터 | 타입 | 필수 | 설명 |
-|---------|------|------|------|
-| startDate | String | ✅ | 시작일 (YYYY-MM-DD) |
-| endDate | String | ✅ | 종료일 (YYYY-MM-DD) |
-
-**Response (200 OK)**
-
-```json
-{
-  "success": true,
-  "data": {
-    "startDate": "2025-01-01",
-    "endDate": "2025-01-31",
-    "totalDays": 31,
-    "businessDays": 21,
-    "holidays": 4,
-    "weekends": 8,
-    "details": [
-      {
-        "date": "2025-01-01",
-        "isBusinessDay": false,
-        "reason": "신정"
-      },
-      {
-        "date": "2025-01-02",
-        "isBusinessDay": true,
-        "reason": null
-      }
-    ]
-  },
-  "message": null,
-  "errorCode": null
-}
-```
-
----
-
-### 4. N일 후 영업일 계산
+### 5. N일 후 영업일 계산 🚧
 
 ```http
 GET /api/v1/holidays/add-business-days?baseDate=2025-01-02&days=5
 ```
 
-**Query Parameters**
-
-| 파라미터 | 타입 | 필수 | 설명 |
-|---------|------|------|------|
-| baseDate | String | ✅ | 기준일 (YYYY-MM-DD) |
-| days | Integer | ✅ | 추가할 영업일 수 |
-
-**Response (200 OK)**
-
-```json
-{
-  "success": true,
-  "data": {
-    "baseDate": "2025-01-02",
-    "businessDaysToAdd": 5,
-    "resultDate": "2025-01-09",
-    "actualDaysElapsed": 7
-  },
-  "message": null,
-  "errorCode": null
-}
-```
-
----
-
-### 5. 월별 캘린더 데이터 조회
+### 6. 월별 캘린더 데이터 조회 🚧
 
 ```http
 GET /api/v1/holidays/calendar?year=2025&month=1
 ```
 
-**Response (200 OK)**
-
-```json
-{
-  "success": true,
-  "data": {
-    "year": 2025,
-    "month": 1,
-    "weeks": [
-      {
-        "weekNumber": 1,
-        "days": [
-          {
-            "date": "2024-12-29",
-            "dayOfWeek": "SUNDAY",
-            "isCurrentMonth": false,
-            "isHoliday": false,
-            "isWeekend": true
-          },
-          {
-            "date": "2024-12-30",
-            "dayOfWeek": "MONDAY",
-            "isCurrentMonth": false,
-            "isHoliday": false,
-            "isWeekend": false
-          },
-          {
-            "date": "2025-01-01",
-            "dayOfWeek": "WEDNESDAY",
-            "isCurrentMonth": true,
-            "isHoliday": true,
-            "holidayName": "신정",
-            "isWeekend": false
-          }
-        ]
-      }
-    ]
-  },
-  "message": null,
-  "errorCode": null
-}
-```
-
----
-
-### 6. 다음 공휴일 조회
+### 7. 다음 공휴일 조회 🚧
 
 ```http
-GET /api/v1/holidays/next?baseDate=2025-01-15
+GET /api/v1/holidays/next?baseDate=2025-01-15&count=2
 ```
 
-**Query Parameters**
-
-| 파라미터 | 타입 | 필수 | 설명 |
-|---------|------|------|------|
-| baseDate | String | ❌ | 기준일 (기본값: 오늘) |
-| count | Integer | ❌ | 조회할 공휴일 수 (기본값: 1, 최대: 10) |
-
-**Response (200 OK)**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "date": "2025-01-28",
-      "name": "설날 연휴",
-      "type": "LUNAR",
-      "daysUntil": 13
-    },
-    {
-      "date": "2025-01-29",
-      "name": "설날",
-      "type": "LUNAR",
-      "daysUntil": 14
-    }
-  ],
-  "message": null,
-  "errorCode": null
-}
-```
-
----
-
-### 7. 롱 위켄드 조회
+### 8. 롱 위켄드 조회 🚧
 
 3일 이상 연휴가 되는 기간을 조회합니다.
 
 ```http
 GET /api/v1/holidays/long-weekends?year=2025
-```
-
-**Response (200 OK)**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "startDate": "2025-01-28",
-      "endDate": "2025-01-30",
-      "days": 3,
-      "name": "설날 연휴",
-      "holidays": ["설날 연휴", "설날", "설날 연휴"]
-    },
-    {
-      "startDate": "2025-05-03",
-      "endDate": "2025-05-06",
-      "days": 4,
-      "name": "어린이날 연휴",
-      "holidays": ["토요일", "일요일", "어린이날", "대체공휴일"]
-    }
-  ],
-  "message": null,
-  "errorCode": null
-}
 ```
 
 ---
@@ -383,18 +181,11 @@ interface HolidayResponse {
   date: string; // YYYY-MM-DD
   name: string;
   isRecurring: boolean; // 매년 반복 여부
-  type: HolidayType;
 }
 
-type HolidayType = 'NATIONAL' | 'LUNAR' | 'SUBSTITUTE' | 'TEMPORARY';
-
-interface CalendarDay {
-  date: string;
-  dayOfWeek: 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
-  isCurrentMonth: boolean;
-  isHoliday: boolean;
-  holidayName: string | null;
-  isWeekend: boolean;
+// 향후 추가될 필드
+interface DetailedHolidayResponse extends HolidayResponse {
+  type: HolidayType; // 'NATIONAL' | 'LUNAR' | 'SUBSTITUTE' | 'TEMPORARY'
 }
 ```
 
@@ -405,8 +196,8 @@ interface CalendarDay {
 | 에러 코드 | HTTP 상태 | 설명 |
 |----------|----------|------|
 | INVALID_DATE_FORMAT | 400 | 유효하지 않은 날짜 형식 |
-| INVALID_YEAR_RANGE | 400 | 지원하지 않는 연도 범위 (2020-2030) |
-| DATE_RANGE_TOO_LARGE | 400 | 날짜 범위가 너무 큼 (최대 366일) |
+| INVALID_YEAR_RANGE | 400 | 지원하지 않는 연도 범위 |
+| SYNC_FAILED | 500 | 공휴일 동기화 실패 |
 
 ---
 
@@ -415,25 +206,27 @@ interface CalendarDay {
 ### 공휴일 데이터 소스
 
 - **한국 공휴일**: 행정안전부 공공데이터 API 연동
-- **음력 공휴일**: 자체 계산 로직 (설날, 추석)
-- **대체공휴일**: 공휴일이 주말과 겹치는 경우 자동 계산
+- **음력 공휴일**: 외부 API에서 제공 (설날, 추석)
+- **대체공휴일**: 외부 API에서 제공
 
-### 자동 업데이트
+### 동기화 프로세스
 
-- 매년 1월 1일 00:00에 다음 연도 공휴일 자동 업데이트
-- 정부 공휴일 변경 시 관리자가 수동으로 업데이트 가능
+1. 관리자가 `/sync` API 호출
+2. 행정안전부 API에 해당 연도/월의 공휴일 요청
+3. 응답 데이터 파싱
+4. DB에 저장 (중복 제거)
+5. 성공 메시지 반환
 
-### 캐싱 전략
+### 자동 업데이트 (향후 구현 예정)
 
-- **Redis Cache Key**: `holiday:year:{year}`
-- **TTL**: 365일 (1년)
-- 공휴일 데이터 변경 시 캐시 무효화
+- 매년 1월 1일 00:00에 다음 연도 공휴일 자동 동기화
+- 정부 공휴일 변경 시 관리자가 수동으로 재동기화 가능
 
 ---
 
 ## 활용 예시
 
-### 예약 가능일 필터링
+### 예약 가능일 필터링 (향후)
 
 ```typescript
 // 영업일만 예약 가능하도록 필터링
@@ -448,7 +241,7 @@ const checkAvailability = async (date: string) => {
 };
 ```
 
-### 배송일 계산
+### 배송일 계산 (향후)
 
 ```typescript
 // 주문일로부터 3영업일 후 배송
@@ -465,3 +258,9 @@ const calculateDeliveryDate = async (orderDate: string) => {
 
 **문서 작성자**: Backend Team  
 **문의**: backend-team@trit.today
+
+**개발 로드맵**:
+- ✅ Phase 1: 공휴일 조회 및 동기화 (완료)
+- 🚧 Phase 2: 공휴일 확인 API (개발 예정)
+- 🚧 Phase 3: 영업일 계산 기능 (개발 예정)
+- 🚧 Phase 4: 캘린더 및 고급 기능 (개발 예정)

@@ -2,7 +2,8 @@
 
 **Base URL**: `/api/v1/courses`  
 **버전**: v1.0  
-**최종 업데이트**: 2025-01-15
+**최종 업데이트**: 2025-01-15  
+**구현 상태**: ✅ 대부분 구현됨
 
 ---
 
@@ -11,19 +12,55 @@
 Course API는 여행 코스 추천 및 경로 계산 기능을 제공합니다.
 
 ### 주요 기능
-- 추천 여행 코스 조회
-- 사용자 맞춤 코스 생성
-- 코스 경로 계산 (도보/대중교통)
-- 코스 저장 및 공유
+- ✅ 코스 생성 및 관리 (CRUD)
+- ✅ 코스 조회 (전체, 상세, 내 코스)
+- ✅ 코스 스크랩 (찜하기)
+- ✅ bbox 영역 내 코스 필터링
+- ✅ 코스 검색 및 정렬
+- ✅ 코스에 등록 가능한 장소 조회
 
 ---
 
 ## API 엔드포인트
 
-### 1. 추천 코스 목록 조회
+### 1. 코스 생성 ✅
 
 ```http
-GET /api/v1/courses?location=제주&duration=1&page=0&size=10
+POST /api/v1/courses
+Content-Type: application/json
+Cookie: accessToken=eyJ...
+```
+
+**Request Body**
+
+```json
+{
+  "name": "제주 동부 해안 일주 코스",
+  "description": "성산일출봉부터 우도까지 동부 해안을 따라가는 코스",
+  "thumbnailImage": "https://s3.amazonaws.com/trit/courses/thumb.jpg",
+  "locationIds": [10, 15, 20, 25],
+  "category": "NATURE",
+  "tags": ["해안도로", "일출", "자연"]
+}
+```
+
+**Response (200 OK)**
+
+```json
+{
+  "success": true,
+  "data": 1,
+  "message": "코스가 생성되었습니다.",
+  "errorCode": null
+}
+```
+
+---
+
+### 2. 모든 코스 조회 ✅
+
+```http
+GET /api/v1/courses/all?sortOption=LATEST&keyword=제주
 Cookie: accessToken=eyJ... (선택)
 ```
 
@@ -31,43 +68,30 @@ Cookie: accessToken=eyJ... (선택)
 
 | 파라미터 | 타입 | 필수 | 설명 |
 |---------|------|------|------|
-| location | String | ❌ | 지역 필터 |
-| duration | Integer | ❌ | 소요 시간 (일 단위) |
-| theme | String | ❌ | 테마 (NATURE, FOOD, CULTURE, ACTIVITY) |
-| page | Integer | ❌ | 페이지 번호 (기본값: 0) |
-| size | Integer | ❌ | 페이지 크기 (기본값: 10) |
+| sortOption | String | ❌ | LATEST, POPULAR, RATING (기본값: LATEST) |
+| keyword | String | ❌ | 검색 키워드 |
 
 **Response (200 OK)**
 
 ```json
 {
   "success": true,
-  "data": {
-    "content": [
-      {
-        "courseId": 1,
-        "name": "제주 동부 해안 일주 코스",
-        "description": "성산일출봉부터 우도까지 동부 해안을 따라가는 코스",
-        "thumbnailImage": "https://s3.amazonaws.com/trit/courses/1/thumb.jpg",
-        "location": "제주특별자치도",
-        "duration": 1,
-        "theme": "NATURE",
-        "distance": 45.5,
-        "estimatedTime": 360,
-        "transportType": "CAR",
-        "placeCount": 5,
-        "likeCount": 856,
-        "isLiked": false,
-        "difficulty": "EASY",
-        "rating": 4.8,
-        "reviewCount": 124
-      }
-    ],
-    "page": 0,
-    "size": 10,
-    "totalElements": 45,
-    "totalPages": 5
-  },
+  "data": [
+    {
+      "courseId": 1,
+      "name": "제주 동부 해안 일주 코스",
+      "description": "성산일출봉부터 우도까지...",
+      "thumbnailImage": "https://s3.amazonaws.com/trit/courses/1/thumb.jpg",
+      "locationCount": 5,
+      "distance": 45.5,
+      "estimatedTime": 360,
+      "scrapCount": 856,
+      "isScrapped": false,
+      "category": "NATURE",
+      "tags": ["해안도로", "일출", "자연"],
+      "createdAt": "2024-12-01T10:00:00"
+    }
+  ],
   "message": null,
   "errorCode": null
 }
@@ -75,12 +99,43 @@ Cookie: accessToken=eyJ... (선택)
 
 ---
 
-### 2. 코스 상세 조회
+### 3. bbox 영역 내 코스 조회 ✅
+
+특정 지도 영역(bounding box) 내의 코스만 필터링합니다.
 
 ```http
-GET /api/v1/courses/{courseId}
+GET /api/v1/courses/all/bbox?bbox=126.0,33.0,127.0,34.0&sortOption=LATEST
 Cookie: accessToken=eyJ... (선택)
 ```
+
+**Query Parameters**
+
+| 파라미터 | 타입 | 필수 | 설명 |
+|---------|------|------|------|
+| bbox | Array | ✅ | [west, south, east, north] 4개 좌표 |
+| sortOption | String | ❌ | LATEST, POPULAR, RATING |
+| keyword | String | ❌ | 검색 키워드 |
+
+**bbox 형식**: `west,south,east,north` (서경, 남위, 동경, 북위)
+
+**Response**: 2번 API와 동일
+
+---
+
+### 4. 코스 상세 조회 ✅
+
+```http
+GET /api/v1/courses/detail?courseId=1&latitude=37.413294&longitude=127.0016985
+Cookie: accessToken=eyJ... (선택)
+```
+
+**Query Parameters**
+
+| 파라미터 | 타입 | 필수 | 설명 |
+|---------|------|------|------|
+| courseId | Long | ✅ | 코스 ID |
+| latitude | Double | ❌ | 현재 위치 위도 (기본값: 37.413294) |
+| longitude | Double | ❌ | 현재 위치 경도 (기본값: 127.0016985) |
 
 **Response (200 OK)**
 
@@ -90,79 +145,32 @@ Cookie: accessToken=eyJ... (선택)
   "data": {
     "courseId": 1,
     "name": "제주 동부 해안 일주 코스",
-    "description": "성산일출봉부터 우도까지 동부 해안을 따라가는 코스입니다...",
-    "thumbnailImage": "https://s3.amazonaws.com/trit/courses/1/thumb.jpg",
-    "images": [
-      "https://s3.amazonaws.com/trit/courses/1/img1.jpg",
-      "https://s3.amazonaws.com/trit/courses/1/img2.jpg"
-    ],
-    "location": "제주특별자치도",
-    "duration": 1,
-    "theme": "NATURE",
+    "description": "상세 설명...",
+    "thumbnailImage": "https://...",
+    "images": ["https://...", "https://..."],
+    "category": "NATURE",
     "distance": 45.5,
     "estimatedTime": 360,
-    "transportType": "CAR",
-    "difficulty": "EASY",
-    "rating": 4.8,
-    "reviewCount": 124,
-    "likeCount": 856,
-    "isLiked": false,
-    "waypoints": [
+    "scrapCount": 856,
+    "isScrapped": false,
+    "tags": ["해안도로", "일출"],
+    "locations": [
       {
-        "order": 1,
-        "place": {
-          "placeId": 10,
-          "name": "성산일출봉",
-          "latitude": 33.4606,
-          "longitude": 126.9424,
-          "category": "LANDMARK"
-        },
-        "visitDuration": 90,
-        "description": "일출 명소이자 유네스코 세계자연유산",
-        "tips": "아침 일찍 방문하면 일출을 볼 수 있습니다"
-      },
-      {
-        "order": 2,
-        "place": {
-          "placeId": 11,
-          "name": "섭지코지",
-          "latitude": 33.4274,
-          "longitude": 126.9296,
-          "category": "SCENIC"
-        },
-        "visitDuration": 60,
-        "description": "해안 절경이 아름다운 곳",
-        "tips": "날씨가 좋은 날 방문 추천"
+        "locationId": 10,
+        "name": "성산일출봉",
+        "latitude": 33.4606,
+        "longitude": 126.9424,
+        "category": "LANDMARK",
+        "address": "제주특별자치도 서귀포시...",
+        "description": "일출 명소",
+        "distanceFromUser": 150.5
       }
     ],
-    "routes": [
-      {
-        "from": {
-          "placeId": 10,
-          "name": "성산일출봉"
-        },
-        "to": {
-          "placeId": 11,
-          "name": "섭지코지"
-        },
-        "distance": 5.2,
-        "duration": 10,
-        "transportType": "CAR",
-        "path": [
-          {"latitude": 33.4606, "longitude": 126.9424},
-          {"latitude": 33.4274, "longitude": 126.9296}
-        ]
-      }
-    ],
-    "recommendedProducts": [
-      {
-        "productId": 15,
-        "name": "성산일출봉 가이드 투어",
-        "thumbnailImage": "...",
-        "price": 30000
-      }
-    ],
-    "tags": ["해안도로", "일출", "자연"],
+    "creator": {
+      "userId": 5,
+      "nickname": "제주여행러버",
+      "profileImage": "https://..."
+    },
     "createdAt": "2024-12-01T10:00:00",
     "updatedAt": "2025-01-10T15:00:00"
   },
@@ -173,141 +181,33 @@ Cookie: accessToken=eyJ... (선택)
 
 ---
 
-### 3. 맞춤 코스 생성
-
-사용자가 선택한 장소들로 최적 경로를 계산합니다.
+### 5. 코스 수정 ✅
 
 ```http
-POST /api/v1/courses/custom
+PUT /api/v1/courses/update?courseId=1
 Content-Type: application/json
 Cookie: accessToken=eyJ...
 ```
 
-**Request Body**
-
-```json
-{
-  "name": "나만의 제주 코스",
-  "placeIds": [10, 11, 15, 20, 25],
-  "startPlaceId": 10,
-  "endPlaceId": 25,
-  "transportType": "CAR",
-  "optimizeRoute": true
-}
-```
-
-**필드 설명**
-
-| 필드 | 타입 | 필수 | 설명 |
-|------|------|------|------|
-| name | String | ✅ | 코스 이름 |
-| placeIds | Array | ✅ | 방문할 장소 ID 배열 |
-| startPlaceId | Long | ✅ | 시작 장소 ID |
-| endPlaceId | Long | ❌ | 종료 장소 ID (미지정 시 시작 장소로) |
-| transportType | String | ✅ | CAR, WALK, PUBLIC_TRANSPORT |
-| optimizeRoute | Boolean | ❌ | 경로 최적화 여부 (기본값: true) |
+**Request Body**: 생성과 동일한 형식
 
 **Response (200 OK)**
 
 ```json
 {
   "success": true,
-  "data": {
-    "courseId": 100,
-    "name": "나만의 제주 코스",
-    "totalDistance": 52.3,
-    "estimatedTime": 420,
-    "waypoints": [
-      {
-        "order": 1,
-        "placeId": 10,
-        "estimatedArrival": "09:00"
-      },
-      {
-        "order": 2,
-        "placeId": 15,
-        "estimatedArrival": "10:30"
-      }
-    ],
-    "routes": [
-      {
-        "from": {"placeId": 10},
-        "to": {"placeId": 15},
-        "distance": 12.5,
-        "duration": 18,
-        "path": [...]
-      }
-    ]
-  },
-  "message": "맞춤 코스가 생성되었습니다.",
+  "data": null,
+  "message": "코스가 수정되었습니다.",
   "errorCode": null
 }
 ```
 
 ---
 
-### 4. 코스 저장 (내 코스로 저장)
+### 6. 코스 삭제 ✅
 
 ```http
-POST /api/v1/courses/{courseId}/save
-Cookie: accessToken=eyJ...
-```
-
-**Response (200 OK)**
-
-```json
-{
-  "success": true,
-  "data": {
-    "savedCourseId": 1
-  },
-  "message": "코스가 저장되었습니다.",
-  "errorCode": null
-}
-```
-
----
-
-### 5. 내 코스 목록 조회
-
-```http
-GET /api/v1/courses/me?page=0&size=10
-Cookie: accessToken=eyJ...
-```
-
-**Response (200 OK)**
-
-```json
-{
-  "success": true,
-  "data": {
-    "content": [
-      {
-        "courseId": 100,
-        "name": "나만의 제주 코스",
-        "thumbnailImage": "...",
-        "placeCount": 5,
-        "totalDistance": 52.3,
-        "estimatedTime": 420,
-        "savedAt": "2025-01-15T10:00:00"
-      }
-    ],
-    "page": 0,
-    "size": 10,
-    "totalElements": 3,
-    "totalPages": 1
-  },
-  "message": null,
-  "errorCode": null
-}
-```
-
----
-
-### 6. 코스 삭제
-
-```http
-DELETE /api/v1/courses/{courseId}
+DELETE /api/v1/courses/delete?courseId=1
 Cookie: accessToken=eyJ...
 ```
 
@@ -324,10 +224,38 @@ Cookie: accessToken=eyJ...
 
 ---
 
-### 7. 코스 좋아요 추가/취소
+### 7. 내가 만든 코스 조회 ✅
 
 ```http
-POST /api/v1/courses/{courseId}/like
+GET /api/v1/courses/my?sortOption=LATEST&keyword=제주
+Cookie: accessToken=eyJ...
+```
+
+**Query Parameters**: 2번 API와 동일
+
+**Response**: 2번 API와 동일
+
+---
+
+### 8. 내가 스크랩한 코스 조회 ✅
+
+```http
+GET /api/v1/courses/my/scrap?sortOption=LATEST&keyword=제주
+Cookie: accessToken=eyJ...
+```
+
+**Query Parameters**: 2번 API와 동일
+
+**Response**: 2번 API와 동일
+
+---
+
+### 9. 코스 스크랩/스크랩 취소 ✅
+
+코스를 찜하거나 찜 취소합니다. 토글 방식으로 동작합니다.
+
+```http
+PATCH /api/v1/courses/scrap?courseId=1
 Cookie: accessToken=eyJ...
 ```
 
@@ -336,33 +264,39 @@ Cookie: accessToken=eyJ...
 ```json
 {
   "success": true,
-  "data": {
-    "isLiked": true,
-    "likeCount": 857
-  },
-  "message": "좋아요가 추가되었습니다.",
+  "data": null,
+  "message": "코스가 스크랩되었습니다.",
+  "errorCode": null
+}
+```
+
+또는
+
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "코스 스크랩이 취소되었습니다.",
   "errorCode": null
 }
 ```
 
 ---
 
-### 8. 경로 계산 (두 장소 간)
+### 10. 코스에 등록 가능한 장소 조회 ✅
+
+코스를 만들 때 추가할 수 있는 장소(Location) 목록을 조회합니다.
 
 ```http
-POST /api/v1/courses/calculate-route
-Content-Type: application/json
+GET /api/v1/courses/locations?keyword=성산&category=LANDMARK
 ```
 
-**Request Body**
+**Query Parameters**
 
-```json
-{
-  "fromPlaceId": 10,
-  "toPlaceId": 15,
-  "transportType": "CAR"
-}
-```
+| 파라미터 | 타입 | 필수 | 설명 |
+|---------|------|------|------|
+| keyword | String | ❌ | 장소 이름 검색 |
+| category | String | ❌ | 카테고리 필터 |
 
 **Response (200 OK)**
 
@@ -370,28 +304,21 @@ Content-Type: application/json
 {
   "success": true,
   "data": {
-    "distance": 12.5,
-    "duration": 18,
-    "transportType": "CAR",
-    "path": [
-      {"latitude": 33.4606, "longitude": 126.9424},
-      {"latitude": 33.4500, "longitude": 126.9350},
-      {"latitude": 33.4400, "longitude": 126.9300}
-    ],
-    "instructions": [
+    "content": [
       {
-        "step": 1,
-        "instruction": "성산일출봉에서 출발",
-        "distance": 0,
-        "duration": 0
-      },
-      {
-        "step": 2,
-        "instruction": "동쪽 방향으로 5.2km 직진",
-        "distance": 5.2,
-        "duration": 8
+        "locationId": 10,
+        "name": "성산일출봉",
+        "latitude": 33.4606,
+        "longitude": 126.9424,
+        "category": "LANDMARK",
+        "address": "제주특별자치도 서귀포시 성산읍",
+        "thumbnailImage": "https://..."
       }
-    ]
+    ],
+    "page": 0,
+    "size": 20,
+    "totalElements": 45,
+    "totalPages": 3
   },
   "message": null,
   "errorCode": null
@@ -402,59 +329,49 @@ Content-Type: application/json
 
 ## 데이터 모델
 
-### CourseResponse
+### SimpleCourseResponse
 
 ```typescript
-interface CourseResponse {
+interface SimpleCourseResponse {
   courseId: number;
   name: string;
   description: string;
   thumbnailImage: string;
-  images: string[];
-  location: string;
-  duration: number; // 일 단위
-  theme: CourseTheme;
+  locationCount: number;
   distance: number; // km
   estimatedTime: number; // 분
-  transportType: TransportType;
-  difficulty: Difficulty;
-  rating: number;
-  reviewCount: number;
-  likeCount: number;
-  isLiked: boolean;
-  waypoints: Waypoint[];
-  routes: Route[];
-  recommendedProducts: ProductResponse[];
+  scrapCount: number;
+  isScrapped: boolean;
+  category: Category;
   tags: string[];
   createdAt: string;
+}
+```
+
+### DetailCourseResponse
+
+```typescript
+interface DetailCourseResponse extends SimpleCourseResponse {
+  images: string[];
+  locations: CourseLocation[];
+  creator: {
+    userId: number;
+    nickname: string;
+    profileImage: string;
+  };
   updatedAt: string;
 }
 
-interface Waypoint {
-  order: number;
-  place: PlaceInfo;
-  visitDuration: number; // 분
-  description: string;
-  tips: string;
-}
-
-interface Route {
-  from: PlaceInfo;
-  to: PlaceInfo;
-  distance: number; // km
-  duration: number; // 분
-  transportType: TransportType;
-  path: Coordinate[];
-}
-
-interface Coordinate {
+interface CourseLocation {
+  locationId: number;
+  name: string;
   latitude: number;
   longitude: number;
+  category: Category;
+  address: string;
+  description: string;
+  distanceFromUser: number; // km (사용자 현재 위치로부터)
 }
-
-type CourseTheme = 'NATURE' | 'FOOD' | 'CULTURE' | 'ACTIVITY' | 'SHOPPING' | 'MIXED';
-type TransportType = 'CAR' | 'WALK' | 'PUBLIC_TRANSPORT' | 'BICYCLE';
-type Difficulty = 'EASY' | 'MODERATE' | 'HARD';
 ```
 
 ---
@@ -464,28 +381,41 @@ type Difficulty = 'EASY' | 'MODERATE' | 'HARD';
 | 에러 코드 | HTTP 상태 | 설명 |
 |----------|----------|------|
 | COURSE_NOT_FOUND | 404 | 코스를 찾을 수 없음 |
-| INVALID_PLACE_SEQUENCE | 400 | 유효하지 않은 장소 순서 |
-| TOO_MANY_WAYPOINTS | 400 | 경유지가 너무 많음 (최대 20개) |
-| ROUTE_CALCULATION_FAILED | 500 | 경로 계산 실패 |
-| UNREACHABLE_DESTINATION | 400 | 도달 불가능한 목적지 |
+| INVALID_BBOX | 400 | bbox는 4개 좌표 필요 (west,south,east,north) |
+| UNAUTHORIZED | 401 | 인증 필요 |
+| FORBIDDEN | 403 | 권한 없음 (본인 코스만 수정/삭제 가능) |
 
 ---
 
-## 특수 기능
+## 비즈니스 로직
 
-### 경로 최적화 알고리즘
+### 정렬 옵션 (SortOption)
 
-코스 생성 시 `optimizeRoute: true`로 설정하면:
-- **TSP (Traveling Salesman Problem)** 알고리즘 적용
-- 시작점과 종료점을 제외한 중간 경유지의 방문 순서 최적화
-- 총 이동 거리 최소화
+- **LATEST**: 최신 생성일 순
+- **POPULAR**: 스크랩 수 많은 순
+- **RATING**: 평점 높은 순 (향후 구현)
 
-### 캐싱 전략
+### 코스 거리 및 소요 시간 계산
 
-자주 조회되는 코스 경로는 Redis에 캐싱:
-- **Cache Key**: `course:route:{fromPlaceId}:{toPlaceId}:{transportType}`
-- **TTL**: 24시간
-- 도로 상황 변경 시 자동 갱신
+- 거리: 각 장소 간 직선 거리의 합
+- 소요 시간: 거리 × 평균 속도 + 각 장소 방문 시간
+
+### Bbox 필터링
+
+지도에서 보이는 영역 내의 코스만 표시하기 위해 사용:
+1. 코스의 모든 장소 위치 확인
+2. 하나라도 bbox 내에 있으면 해당 코스 포함
+
+---
+
+## 용어 정리
+
+**⚠️ 중요**: 이 API에서는 "스크랩(scrap)"이라는 용어를 사용합니다.
+- **스크랩(Scrap)**: 코스를 찜하는 기능 (좋아요와 유사)
+- **스크랩 수(scrapCount)**: 해당 코스를 스크랩한 사용자 수
+- **내가 스크랩한 코스**: 내가 찜한 코스 목록
+
+다른 도메인(Product, Contents)에서는 "좋아요(like)"를 사용하지만, Course에서는 "스크랩"을 사용합니다.
 
 ---
 
