@@ -1,0 +1,479 @@
+{
+    "version": "1.0.0",
+    "title": "하위 셀러 지급대행 API",
+    "baseUrls": {
+        "sandbox": "https://bo-api-snd.payverseglobal.com",
+        "production": "https://bo-api.payverseglobal.com"
+    },
+    "security": {
+        "protocol": "HTTPS",
+        "port": 443,
+        "tls": ">= 1.2",
+        "headers": {
+            "mid": "가맹점 ID (이롬넷 발급)",
+            "clientKey": "가맹점 Client Key (이롬넷 발급)"
+        }
+    },
+    "encryption": {
+        "algorithm": "AES-128/256",
+        "mode": "CBC",
+        "padding": "PKCS5",
+        "encoding": "Base64",
+        "secretKey": "이롬넷 발급 secretKey",
+        "iv": "이롬넷 발급 clientKey"
+    },
+    "common": {
+        "resultFields": {
+            "resultStatus": "SUCCESS | FAILED",
+            "resultMessage": "오류/결과 메시지"
+        },
+        "payoutCurrency": "KRW"
+    },
+    "enums": {
+        "CorporateDiv": [
+            "Individual",
+            "Enterprise"
+        ],
+        "TransStatus": [
+            "PAYMENT_REQUEST",
+            "PAYMENT_CANCEL",
+            "TRANS_REQUEST",
+            "TRANS_CANCEL",
+            "TRANS_FAIL",
+            "TRANS_PROCESS",
+            "TRANS_INQUIRE",
+            "TRANS_COMPLETE"
+        ]
+    },
+    "endpoints": [
+        {
+            "name": "하위 셀러 등록",
+            "method": "POST",
+            "path": "/external/seller/merchant/regist",
+            "contentType": "multipart/form-data; charset=utf-8",
+            "headers": [
+                "mid",
+                "clientKey"
+            ],
+            "request": {
+                "fields": {
+                    "sellerId": "string(20) - required",
+                    "sellerName": "string(50) - required",
+                    "sellerUrl": "string(255)",
+                    "corporateDiv": "CorporateDiv - required",
+                    "corporateType": "string(20)",
+                    "corporateNo": "string(30) - required",
+                    "corporateName": "string(40) - required",
+                    "corporateAddr": "string(100)",
+                    "corporateTel": "string(11) - required, 하이픈 제외",
+                    "corporateEmail": "string(100)",
+                    "ceoName": "string(40) - required",
+                    "bankCode": "string(3) - required (은행 코드 참조)",
+                    "bankAccountNo": "string(255) - required, AES 암호화 값",
+                    "bankAccountHolder": "string(255) - required, AES 암호화 값",
+                    "payoutCurrency": "string(3) - required, KRW",
+                    "businessLicense": "file <=2MB (jpg|jpeg|png|pdf) - required",
+                    "ceoIdentificationCopy": "file <=2MB (jpg|jpeg|png|pdf) - required",
+                    "bankAccountCopy": "file <=2MB (jpg|jpeg|png|pdf) - required"
+                }
+            },
+            "response": {
+                "contentType": "application/json; charset=utf-8",
+                "body": {
+                    "resultStatus": "string",
+                    "resultMessage": "string"
+                }
+            }
+        },
+        {
+            "name": "하위 셀러 정보 변경",
+            "method": "POST",
+            "path": "/external/seller/merchant/modify",
+            "contentType": "multipart/form-data; charset=utf-8",
+            "headers": [
+                "mid",
+                "clientKey"
+            ],
+            "request": {
+                "fields": {
+                    "sellerId": "string(20) - required",
+                    "sellerName": "string(50) - required",
+                    "sellerUrl": "string(255)",
+                    "corporateDiv": "CorporateDiv - required",
+                    "corporateType": "string(20)",
+                    "corporateNo": "string(30) - required",
+                    "corporateName": "string(40) - required",
+                    "corporateAddr": "string(100)",
+                    "corporateTel": "string(11) - required, 하이픈 제외",
+                    "corporateEmail": "string(100)",
+                    "ceoName": "string(40) - required",
+                    "bankCode": "string(3) - required",
+                    "bankAccountNo": "string(255) - required, AES 암호화 값",
+                    "bankAccountHolder": "string(255) - required, AES 암호화 값",
+                    "payoutCurrency": "string(3) - required, KRW",
+                    "businessLicense": "file <=2MB (jpg|jpeg|png|pdf) - 변경 시만 첨부(기존 파일 대체)",
+                    "ceoIdentificationCopy": "file <=2MB (jpg|jpeg|png|pdf) - 변경 시만 첨부",
+                    "bankAccountCopy": "file <=2MB (jpg|jpeg|png|pdf) - 변경 시만 첨부"
+                }
+            },
+            "response": {
+                "contentType": "application/json; charset=utf-8",
+                "body": {
+                    "resultStatus": "string",
+                    "resultMessage": "string"
+                }
+            }
+        },
+        {
+            "name": "하위 셀러 정보 조회",
+            "method": "GET",
+            "path": "/external/seller/merchant/search",
+            "contentType": "application/json; charset=utf-8",
+            "headers": [
+                "mid",
+                "clientKey"
+            ],
+            "request": {
+                "paramsOrBody": {
+                    "sellerId": "string(20) - required"
+                }
+            },
+            "response": {
+                "body": {
+                    "resultStatus": "string",
+                    "resultMessage": "string",
+                    "sellerId": "string(20)",
+                    "sellerStatus": "string(LIVE|REVIEWING|REJECT|SUSPEND)",
+                    "sellerName": "string(50)",
+                    "sellerUrl": "string(255)",
+                    "corporateDiv": "CorporateDiv",
+                    "corporateType": "string(20)",
+                    "corporateNo": "string(30)",
+                    "corporateName": "string(40)",
+                    "corporateAddr": "string(100)",
+                    "corporateTel": "string(11)",
+                    "corporateEmail": "string(100)",
+                    "ceoName": "string(40)",
+                    "bankCode": "string(3)",
+                    "bankAccountNo": "string(255) - 암호화",
+                    "bankAccountHolder": "string(255) - 암호화",
+                    "payoutCurrency": "string(3)"
+                }
+            }
+        },
+        {
+            "name": "가맹점 송금 잔액 조회",
+            "method": "GET",
+            "path": "/external/seller/transfer/remainamt",
+            "contentType": "application/json; charset=utf-8",
+            "headers": [
+                "mid",
+                "clientKey"
+            ],
+            "request": {
+                "noBody": true
+            },
+            "response": {
+                "body": {
+                    "resultStatus": "string",
+                    "resultMessage": "string",
+                    "payoutCurrency": "string(3)",
+                    "remainAmt": "number(BigDecimal)",
+                    "requestAmt": "number(BigDecimal)",
+                    "expectedRemainAmt": "number(BigDecimal)"
+                }
+            }
+        },
+        {
+            "name": "하위 셀러 지급 요청",
+            "method": "POST",
+            "path": "/external/seller/payout/request",
+            "contentType": "application/json; charset=utf-8",
+            "headers": [
+                "mid",
+                "clientKey"
+            ],
+            "request": {
+                "body": {
+                    "sellerId": "string(20) - required",
+                    "paymentAmt": "number(BigDecimal) - required (>0)",
+                    "transDate": "string(8) - required, YYYYMMDD",
+                    "description": "string(20)"
+                }
+            },
+            "response": {
+                "body": {
+                    "resultStatus": "string",
+                    "resultMessage": "string",
+                    "payoutId": "string(20)",
+                    "mid": "string(10)",
+                    "sellerId": "string(20)",
+                    "bankCode": "string(3)",
+                    "bankName": "string(50)",
+                    "bankAccountNo": "string(255) - 암호화",
+                    "bankAccountHolder": "string(255) - 암호화",
+                    "payoutCurrency": "string(3)",
+                    "paymentAmt": "number(BigDecimal)",
+                    "transDate": "string(8)"
+                }
+            }
+        },
+        {
+            "name": "하위 셀러 지급 정보 변경",
+            "method": "POST",
+            "path": "/external/seller/payout/modify",
+            "contentType": "application/json; charset=utf-8",
+            "headers": [
+                "mid",
+                "clientKey"
+            ],
+            "request": {
+                "body": {
+                    "payoutId": "string(20) - required",
+                    "sellerId": "string(20) - required",
+                    "paymentAmt": "number(BigDecimal) - required",
+                    "transDate": "string(8) - required, YYYYMMDD",
+                    "description": "string(20)"
+                }
+            },
+            "response": {
+                "body": {
+                    "resultStatus": "string",
+                    "resultMessage": "string",
+                    "payoutId": "string(20)",
+                    "mid": "string(10)",
+                    "sellerId": "string(20)",
+                    "payoutCurrency": "string(3)",
+                    "paymentAmt": "number(BigDecimal)",
+                    "transDate": "string(8)"
+                }
+            }
+        },
+        {
+            "name": "하위 셀러 지급 취소",
+            "method": "POST",
+            "path": "/external/seller/payout/cancel",
+            "contentType": "application/json; charset=utf-8",
+            "headers": [
+                "mid",
+                "clientKey"
+            ],
+            "request": {
+                "body": {
+                    "payoutId": "string(20) - required",
+                    "sellerId": "string(20) - required"
+                }
+            },
+            "response": {
+                "body": {
+                    "resultStatus": "string",
+                    "resultMessage": "string",
+                    "payoutId": "string(20)",
+                    "mid": "string(10)",
+                    "sellerId": "string(20)",
+                    "payoutCurrency": "string(3)",
+                    "paymentAmt": "number(BigDecimal)",
+                    "transDate": "string(8)",
+                    "transStatus": "TransStatus"
+                }
+            }
+        },
+        {
+            "name": "하위 셀러 송금 요청",
+            "method": "POST",
+            "path": "/external/seller/transfer/request",
+            "contentType": "application/json; charset=utf-8",
+            "headers": [
+                "mid",
+                "clientKey"
+            ],
+            "request": {
+                "body": {
+                    "payoutId": "string(20) - required",
+                    "sellerId": "string(20) - required"
+                }
+            },
+            "response": {
+                "body": {
+                    "resultStatus": "string",
+                    "resultMessage": "string",
+                    "payoutId": "string(20)",
+                    "mid": "string(10)",
+                    "sellerId": "string(20)",
+                    "payoutCurrency": "string(3)",
+                    "paymentAmt": "number(BigDecimal)",
+                    "transDate": "string(8)",
+                    "transStatus": "TransStatus"
+                }
+            }
+        },
+        {
+            "name": "하위 셀러 송금 요청 취소",
+            "method": "POST",
+            "path": "/external/seller/transfer/cancel",
+            "contentType": "application/json; charset=utf-8",
+            "headers": [
+                "mid",
+                "clientKey"
+            ],
+            "request": {
+                "body": {
+                    "payoutId": "string(20) - required",
+                    "sellerId": "string(20) - required"
+                }
+            },
+            "response": {
+                "body": {
+                    "resultStatus": "string",
+                    "resultMessage": "string",
+                    "payoutId": "string(20)",
+                    "mid": "string(10)",
+                    "sellerId": "string(20)",
+                    "payoutCurrency": "string(3)",
+                    "paymentAmt": "number(BigDecimal)",
+                    "transDate": "string(8)",
+                    "transStatus": "TransStatus"
+                }
+            }
+        },
+        {
+            "name": "하위 셀러 지급/송금 정보 조회",
+            "method": "GET",
+            "path": "/external/seller/payout/info",
+            "contentType": "application/json; charset=utf-8",
+            "headers": [
+                "mid",
+                "clientKey"
+            ],
+            "request": {
+                "paramsOrBody": {
+                    "payoutId": "string(20) - required",
+                    "sellerId": "string(20) - required"
+                }
+            },
+            "response": {
+                "body": {
+                    "resultStatus": "string",
+                    "resultMessage": "string",
+                    "payoutId": "string(20)",
+                    "mid": "string(10)",
+                    "sellerId": "string(20)",
+                    "payoutCurrency": "string(3)",
+                    "paymentAmt": "number(BigDecimal)",
+                    "transDate": "string(8)",
+                    "bankAccountNo": "string(255) - 암호화",
+                    "bankAccountHolder": "string(255) - 암호화",
+                    "description": "string(20)",
+                    "transStatus": "TransStatus",
+                    "transErrorMessage": "string(255) - 송금 실패 시"
+                }
+            }
+        }
+    ],
+    "references": {
+        "bankCodes": [
+            [
+                "002",
+                "산업"
+            ],
+            [
+                "003",
+                "기업"
+            ],
+            [
+                "004",
+                "국민"
+            ],
+            [
+                "007",
+                "수협"
+            ],
+            [
+                "011",
+                "농협"
+            ],
+            [
+                "020",
+                "우리"
+            ],
+            [
+                "023",
+                "SC"
+            ],
+            [
+                "027",
+                "CITI"
+            ],
+            [
+                "031",
+                "대구"
+            ],
+            [
+                "032",
+                "부산"
+            ],
+            [
+                "034",
+                "광주"
+            ],
+            [
+                "035",
+                "제주"
+            ],
+            [
+                "037",
+                "전북"
+            ],
+            [
+                "039",
+                "경남"
+            ],
+            [
+                "045",
+                "새마을금고"
+            ],
+            [
+                "048",
+                "신협"
+            ],
+            [
+                "071",
+                "우체국"
+            ],
+            [
+                "081",
+                "하나"
+            ],
+            [
+                "088",
+                "신한"
+            ],
+            [
+                "089",
+                "케이뱅크"
+            ],
+            [
+                "090",
+                "카카오뱅크"
+            ],
+            [
+                "092",
+                "토스뱅크"
+            ]
+        ],
+        "processingWindows": {
+            "businessDaysOnly": true,
+            "batches": [
+                {
+                    "time": "11:00",
+                    "range": "전일 15:00:00 ~ 당일 07:59:59"
+                },
+                {
+                    "time": "17:00",
+                    "range": "전일 08:00:00 ~ 당일 15:00:00"
+                }
+            ],
+            "rule": "지급요청 후 ‘송금 요청’까지 완료된 건만 송금 처리"
+        }
+    }
+}

@@ -4,3 +4,6 @@
 [submodule "TRIT-BE"]
 	path = TRIT-BE
 	url = https://github.com/Today-Story/TRIT-BE.git
+[submodule "TRIT-BEAUTY"]
+	path = TRIT-BEAUTY
+	url = https://github.com/Today-Story/TRIT-BEAUTY.git
