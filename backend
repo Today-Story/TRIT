@@ -1,0 +1,290 @@
+# 결제 도메인 리팩토링 계획
+
+**작성일**: 2025-12-12  
+**대상 도메인**: Reservation, Product, Payment, Option  
+**목표**: 코드 품질 개선, 유지보수성 향상, 테스트 커버리지 증가
+
+---
+
+## 📋 현재 상태 분석
+
+### 도메인별 파일 수
+- **Payment**: 38개 파일
+- **Product**: 67개 파일
+- **Reservation**: 31개 파일
+- **총**: 136개 파일
+
+### 주요 이슈 (검증 완료)
+1. ✅ **결제 금액 계산 로직 검증 완료**
+   - 프론트엔드가 이미 할인된 금액을 전송하는 버그 발견
+   - 백엔드가 재계산으로 방어 중 (안전)
+   - 14개 테스트 케이스 작성 완료
+
+2. **코드 중복 가능성**
+   - DTO 클래스 과다 (Product만 67개)
+   - Request/Response 패턴 반복
+
+3. **도메인 간 의존성**
+   - Payment → Reservation → Product 의존
+   - Option이 Product에 포함되어 있음
+
+---
+
+## 🎯 리팩토링 목표
+
+### 1. 코드 품질
+- [ ] 중복 코드 제거
+- [ ] 도메인 로직 명확화
+- [ ] 일관된 네이밍 규칙 적용
+
+### 2. 아키텍처
+- [ ] 도메인 간 의존성 정리
+- [ ] 계층 구조 명확화 (Controller → Service → Domain)
+- [ ] DTO 최적화
+
+### 3. 테스트
+- [ ] 단위 테스트 커버리지 증가
+- [ ] 통합 테스트 추가
+- [ ] 엣지 케이스 검증
+
+### 4. 성능
+- [ ] N+1 쿼리 최적화
+- [ ] 불필요한 페치 제거
+- [ ] 캐싱 전략 검토
+
+---
+
+## 📊 리팩토링 우선순위
+
+### Phase 1: Payment 도메인 (현재 진행 중)
+**완료 사항:**
+- ✅ 결제 금액 계산 로직 검증
+- ✅ 쿠폰 할인 계산 테스트 14개 작성
+- ✅ 이중 할인 버그 재현 테스트 6개 작성
+- ✅ 프론트엔드 버그 원인 분석 완료
+
+**다음 작업:**
+1. [ ] Payment 도메인 모델 정리
+2. [ ] PaymentService 메서드 분리 (단일 책임 원칙)
+3. [ ] Payment DTO 최적화
+4. [ ] 결제 상태 관리 개선
+5. [ ] 결제 히스토리 추적 강화
+
+### Phase 2: Product 도메인
+**계획:**
+1. [ ] Product 옵션 구조 개선
+   - ProductOption
+   - PeopleOption
+   - AdditionalProduct
+   - OptionValues
+2. [ ] DTO 통합 (67개 → 목표: 40개 이하)
+3. [ ] Product Schedule 관리 개선
+4. [ ] Product 생성/수정 로직 단순화
+
+### Phase 3: Reservation 도메인
+**계획:**
+1. [ ] Reservation 상태 머신 명확화
+2. [ ] Reservation 생성 로직 개선
+3. [ ] Reservation과 Payment 동기화 강화
+4. [ ] Reservation 옵션 처리 개선
+
+### Phase 4: 통합 및 최적화
+**계획:**
+1. [ ] 도메인 간 이벤트 기반 통신 검토
+2. [ ] 트랜잭션 경계 최적화
+3. [ ] API 응답 성능 개선
+4. [ ] 에러 핸들링 표준화
+
+---
+
+## 🔍 상세 분석 필요 항목
+
+### Payment 도메인
+```
+payment/
+├── domain/
+│   └── Payment.java (✅ applyCoupon 검증 완료)
+├── service/
+│   ├── PaymentServiceImpl.java (리팩토링 필요)
+│   ├── PaymentSaleService.java
+│   └── EromnetApiService.java
+├── dto/
+│   ├── request/ (5개 파일)
+│   └── response/ (14개 파일)
+└── repository/
+    └── PaymentRepository.java
+```
+
+**이슈:**
+- `PaymentServiceImpl`: 400+ 라인, 여러 책임 혼재
+- DTO 파일 19개 (통합 가능성 검토)
+- Eromnet PG 연동 로직 분리 필요
+
+### Product 도메인
+```
+product/
+├── domain/
+│   ├── Product.java
+│   ├── ProductOption.java
+│   ├── PeopleOption.java
+│   ├── AdditionalProduct.java
+│   └── ...
+├── service/
+│   └── ProductService.java
+├── dto/
+│   ├── request/ (14개 파일)
+│   └── response/ (10개 파일)
+└── repository/
+    └── ProductRepository.java
+```
+
+**이슈:**
+- DTO 파일 67개 (가장 많음)
+- 옵션 관련 클래스 중복 가능성
+- Schedule 관리 복잡도 높음
+
+### Reservation 도메인
+```
+reservation/
+├── domain/
+│   ├── Reservation.java
+│   ├── ReservationOption.java
+│   ├── ReservationPeopleOption.java
+│   └── ReservationAdditionalProduct.java
+├── service/
+│   └── ReservationService.java
+├── dto/
+│   ├── request/ (9개 파일)
+│   └── response/ (11개 파일)
+└── repository/
+    └── ReservationRepository.java
+```
+
+**이슈:**
+- Payment 생성 시 Reservation 자동 생성
+- 옵션 정보 중복 저장 (Payment, Reservation)
+- JSON 직렬화/역직렬화 복잡도
+
+---
+
+## 🛠️ 리팩토링 전략
+
+### 1. 점진적 개선
+- 한 번에 하나의 도메인씩
+- 기존 기능 유지하면서 개선
+- 각 단계마다 테스트로 검증
+
+### 2. 테스트 주도
+- 리팩토링 전 테스트 작성
+- 리팩토링 후 테스트 통과 확인
+- 회귀 테스트 방지
+
+### 3. 문서화
+- 변경 사항 기록
+- API 명세 업데이트
+- 아키텍처 결정 기록 (ADR)
+
+---
+
+## 📝 첫 번째 리팩토링 작업
+
+### 대상: PaymentServiceImpl
+**현재 상태:**
+- 600+ 라인
+- 여러 책임 혼재 (결제, 쿠폰, 환불, 정산, PG 연동)
+
+**목표:**
+1. 단일 책임 원칙 적용
+2. 메서드 분리 및 가독성 향상
+3. 테스트 가능한 구조로 변경
+
+**세부 작업:**
+- [ ] `saveInitialPayment` 메서드 개선
+  - [ ] 금액 계산 로직 별도 클래스로 분리 (`PaymentAmountCalculator`)
+  - [ ] 쿠폰 적용 로직 별도 클래스로 분리 (`PaymentCouponApplier`)
+  - [ ] 검증 로직 개선
+- [ ] `confirmPayment` 메서드 개선
+  - [ ] Webhook 처리 로직 분리
+  - [ ] Reservation 생성 로직 명확화
+- [ ] `cancelPayment` 메서드 개선
+  - [ ] 환불 처리 로직 분리
+  - [ ] 상태 변경 로직 명확화
+
+---
+
+## 🎯 성공 기준
+
+### 코드 품질 지표
+- [ ] 메서드당 평균 라인 수 < 20
+- [ ] 클래스당 평균 라인 수 < 200
+- [ ] Cyclomatic Complexity < 10
+
+### 테스트 커버리지
+- [ ] Payment 도메인: 80% 이상
+- [ ] Product 도메인: 70% 이상
+- [ ] Reservation 도메인: 70% 이상
+
+### 성능 지표
+- [ ] N+1 쿼리 제거
+- [ ] API 응답 시간 < 500ms (p95)
+- [ ] 페이지네이션 성능 개선
+
+---
+
+## 📅 일정 (예상)
+
+### Week 1: Payment 도메인
+- Day 1-2: 코드 분석 및 테스트 작성
+- Day 3-4: 리팩토링 실행
+- Day 5: 테스트 및 문서화
+
+### Week 2: Product 도메인
+- Day 1-2: DTO 통합 및 최적화
+- Day 3-4: 옵션 구조 개선
+- Day 5: 테스트 및 문서화
+
+### Week 3: Reservation 도메인
+- Day 1-2: 상태 관리 개선
+- Day 3-4: 생성 로직 개선
+- Day 5: 테스트 및 문서화
+
+### Week 4: 통합 및 최적화
+- Day 1-3: 도메인 간 통합 테스트
+- Day 4-5: 성능 최적화 및 문서 정리
+
+---
+
+## 🚨 주의사항
+
+### 보존해야 할 것
+1. ✅ **현재의 금액 계산 로직**
+   - `calculateOriginalAmountBeforeCoupon` 메서드 유지
+   - 프론트엔드 값 무시하고 백엔드 재계산하는 방어 로직
+   - 쿠폰 할인 로직 (`Payment.applyCoupon`, `Coupon.calculateDiscountAmount`)
+
+2. **API 호환성**
+   - 기존 API 엔드포인트 유지
+   - Request/Response 구조 변경 시 버저닝
+
+3. **데이터 무결성**
+   - 트랜잭션 경계 유지
+   - 결제 상태 일관성 보장
+
+### 리팩토링 금지 항목
+- ❌ ProductResponse 구조 변경 (하위 호환성)
+- ❌ Enum을 String으로 변환
+- ❌ DTO 검증 생략
+- ❌ 로그에 민감 정보 추가
+- ❌ 파괴적 DB 스키마 변경
+
+---
+
+## 📚 참고 문서
+- [AGENTS.md](../AGENTS.md) - 프로젝트 전체 가이드
+- [ARCHITECTURE.md](../ARCHITECTURE.md) - 시스템 아키텍처
+- [CONSTITUTION.md](../CONSTITUTION.md) - 개발 철학
+- [PAYMENT_AMOUNT_CALCULATION_VERIFICATION.md](./PAYMENT_AMOUNT_CALCULATION_VERIFICATION.md) - 결제 금액 검증 보고서
+
+---
+
+**다음 단계**: PaymentServiceImpl 상세 분석 및 리팩토링 계획 수립
